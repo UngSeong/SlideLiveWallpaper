@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_debug"
+        android:icon="@drawable/ic_debug"
+        android:title="디버그 모드"
+        android:checkable="true"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_include_sub_directory"
+        android:icon="@drawable/ic_directory"
+        android:title="하위 디렉터리 포함"
+        android:checkable="true"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_refresh_files"
+        android:icon="@drawable/ic_refresh"
+        android:title="이미지 파일 재 탐색"
+        app:showAsAction="never"/>
+
+</menu>

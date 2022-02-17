@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/drawable/ic_image_source.xml" value="0.264" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.23287037037037037" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/activity_main.xml" value="0.264" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/box.xml" value="0.22546296296296298" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/button_layout.xml" value="0.22546296296296298" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/item_pref_button.xml" value="0.22546296296296298" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/item_pref_edit.xml" value="0.1" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/list_item_preference.xml" value="0.4" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/list_item_setting.xml" value="0.136" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/list_item_setting_horizontal.xml" value="0.264" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/list_item_setting_vertical.xml" value="0.46632124352331605" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/pref_layout.xml" value="0.10555555555555556" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/pref_text_basic.xml" value="0.10555555555555556" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/pref_text_with_button.xml" value="0.10555555555555556" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/switch_item.xml" value="0.17824074074074073" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/toolbar.xml" value="0.22546296296296298" />
+        <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/menu/menu_main.xml" value="0.4" />
+        <entry key="..\:/KSU/AndroidStudio/Slidelivewallpaper/app/src/main/res/layout/activity_main.xml" value="0.1" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">Slidelive wallpaper</string>
+
+    <!--배경화면 설정 버튼 텍스트-->
+    <string name="set_background_button">배경화면 설정하기</string>
+
+    <!--preference 공유 텍스트-->
+    <string name="preference_shared_positive">저장</string>
+    <string name="preference_shared_negative">취소</string>
+
+    <!--preference 1 텍스트-->
+    <string name="preference_1_title">이미지 지속시간</string>
+    <string name="preference_1_description">이미지가 보여지는 지속시간입니다.</string>
+
+    <!--preference 2 텍스트-->
+    <string name="preference_2_title">페이드 효과 지속시간</string>
+    <string name="preference_2_description">이미지가 전환되는 페이드 효과의 지속시간입니다.</string>
+
+    <!--preference 3 텍스트-->
+    <string name="preference_3_title">이미지 폴더 주소</string>
+    <string name="preference_3_description">슬라이드 할 이미지가 들어있는 폴더 주소입니다.</string>
+    <string name="preference_3_additional">Document Tree에서 선택하기</string>
+
+    <!--preference 4 텍스트-->
+    <string name="preference_4_title">최대 초당 프레임 제한</string>
+    <string name="preference_4_description">1초당 최대 화면 업데이트 빈도입니다.</string>
+
+    <!--외부 저장소 읽기 권환 텍스트-->
+    <string name="permission_read_external_storage_title">외부 저장소 읽기 권한 필요</string>
+    <string name="permission_read_external_storage_description">슬라이드 이미지를 받아오기 위해 외부 저장소의 읽기 권환이 필요합니다!</string>
+
+</resources>

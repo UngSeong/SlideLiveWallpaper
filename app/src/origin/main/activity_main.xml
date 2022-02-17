@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+    
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"/>
+    
+    <RelativeLayoutsch
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/slide_pref"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ripple_pref"
+        android:padding="16dp"
+        android:gravity="center"
+        android:orientation="vertical">
+        
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#000000"
+            android:text="화면 전환 지속시간"/>
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:orientation="horizontal">
+        
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:textColor="#8F8F8F"
+                android:text="화면이 전환되는 지속시간입니다. (2 ~ 10)"/>
+            
+            <TextView
+                android:id="@+id/slide_pref_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:gravity="right"
+                android:textSize="24sp"
+                android:textColor="#8F8F8F"
+                android:text=""/>
+            
+        </LinearLayout>
+        
+    </LinearLayout>
+    
+    <LinearLayout
+        android:id="@+id/stop_pref"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/slide_pref"
+        android:background="@drawable/ripple_pref"
+        android:padding="16dp"
+        android:gravity="center"
+        android:orientation="vertical">
+        
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#000000"
+            android:text="이미지 지속시간"/>
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:orientation="horizontal">
+        
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:textColor="#8F8F8F"
+                android:text="이미지가 보여지는 지속시간입니다."/>
+            
+            <TextView
+                android:id="@+id/stop_pref_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:gravity="right"
+                android:textSize="24sp"
+                android:textColor="#8F8F8F"
+                android:text=""/>
+            
+        </LinearLayout>
+        
+    </LinearLayout>
+    
+    <LinearLayout
+        android:id="@+id/path_pref"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/stop_pref"
+        android:background="@drawable/ripple_pref"
+        android:padding="16dp"
+        android:gravity="center"
+        android:orientation="vertical">
+        
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#000000"
+            android:text="이미지 폴더 주소"/>
+        
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#8F8F8F"
+            android:text="이미지가 들어있는 폴더 주소입니다."/>
+        
+        <TextView
+            android:id="@+id/path_pref_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#8F8F8F"
+            android:text=""/>
+        
+    </LinearLayout>
+    
+    <Button
+        android:id="@+id/set_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/ripple_button"
+        android:padding="10dp"
+        android:textSize="20sp"
+        android:onClick="setIntent"
+        android:text="배경화면 설정하기"/>
+    
+    </RelativeLayoutsch>
+    
+</LinearLayout>
