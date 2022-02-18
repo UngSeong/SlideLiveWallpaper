@@ -6,10 +6,11 @@ import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PRE
 import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PREF_ID_FPS_LIMIT;
 import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PREF_ID_IMAGE_DURATION;
 import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PREF_ID_IMAGE_FADE_DURATION;
+import static com.longseong.slidelivewallpaper.wallpaper.LiveWallpaperService.screenOrientation;
 
-import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -33,13 +34,16 @@ import java.util.LinkedList;
 
 public class FileBitmapDrawer {
 
+    //상수
     private static final int MAX_LOADED_BITMAP = 3;
     private static final int INDEX_NULL = -1;
     private static final float TEXT_SIZE = 20f;
 
+    //context
     private final Context mContext;
     private final LiveWallpaperService.WallpaperEngine mEngine;
 
+    //preference
     protected long pref_imageDuration;
     protected long pref_imageFadeDuration;
     protected Uri pref_directoryUri;
@@ -47,33 +51,41 @@ public class FileBitmapDrawer {
     protected boolean pref_debug;
     protected boolean pref_includeSubDirectory;
 
+    //screen data (화면 정보)
+    private float localScreenWidth;
+    private float localScreenHeight;
+
+    //canvas
     private Bitmap mBitmap;
     private Canvas mCanvas;
     private Paint mBitmapPaint;
-
     private Paint mTextPaint;
     private Paint mForegroundPaint;
 
+    //document (파일 접근)
     private DocumentFile mRootDocument;
     private LinkedList<DocumentFile> mImageFiles;
 
+    //handler
     private Handler bitmapLoaderHandler;
     private Runnable bitmapLoaderRunnable;
 
+    //scene (그려진 화면)
     private Bitmap mDefaultBitmap;
     private LinkedList<Bitmap> mLoadedBitmapQueue;
     private LinkedList<Integer> mLoadedBitmapIndexQueue;
 
+    //image index (이미지 순서)
     private int mFullIndex;
     private int mMainIndex;
 
+    //image progress (이미지 진행 상태)
     private float mDurationPercentage;
     private long mPreviousTime;
     private int mTakenTime;
     private int mFps;
     private int mFpsAvg;
     private final LinkedList<Integer> mFpsList = new LinkedList<>();
-
     private boolean mImageFilesLoading;
     private boolean mImageFilesSorting;
     private int mSortingImage;
@@ -88,6 +100,11 @@ public class FileBitmapDrawer {
         initPreferenceData();
         initDefaultBitmap();
         initFiles();
+    }
+
+    public void configChanged() {
+        initBitmap();
+        initCanvas();
     }
 
     private void initBitmapLoader() {
@@ -169,9 +186,14 @@ public class FileBitmapDrawer {
     }
 
     private void initBitmap() {
-        int width = mDisplayMetrics.widthPixels;
-        int height = mDisplayMetrics.heightPixels;
-        mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            localScreenWidth = mDisplayMetrics.widthPixels;
+            localScreenHeight = mDisplayMetrics.heightPixels;
+        } else {
+            localScreenWidth = mDisplayMetrics.heightPixels;
+            localScreenHeight = mDisplayMetrics.widthPixels;
+        }
+        mBitmap = Bitmap.createBitmap((int) localScreenWidth, (int) localScreenHeight, Bitmap.Config.ARGB_8888);
     }
 
     private void initCanvas() {
@@ -241,8 +263,8 @@ public class FileBitmapDrawer {
         bitmapWidth = bitmap.getWidth();
         bitmapHeight = bitmap.getHeight();
 
-        horizontalScale = (float) bitmapWidth / mDisplayMetrics.widthPixels;
-        verticalScale = (float) bitmapHeight / mDisplayMetrics.heightPixels;
+        horizontalScale = bitmapWidth / localScreenWidth;
+        verticalScale = bitmapHeight / localScreenHeight;
         compoundScale = Math.min(horizontalScale, verticalScale);
 
         bitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
@@ -290,8 +312,8 @@ public class FileBitmapDrawer {
         bitmapWidth = main.getWidth();
         bitmapHeight = main.getHeight();
 
-        horizontalTranslation = -(bitmapWidth - mDisplayMetrics.widthPixels) / 2f;
-        verticalTranslation = -(bitmapHeight - mDisplayMetrics.heightPixels) / 2f;
+        horizontalTranslation = -(bitmapWidth - localScreenWidth) / 2f;
+        verticalTranslation = -(bitmapHeight - localScreenHeight) / 2f;
 
         //draw main image
         mBitmapPaint.setAlpha(0xFF);
@@ -303,8 +325,8 @@ public class FileBitmapDrawer {
             bitmapWidth = sub.getWidth();
             bitmapHeight = sub.getHeight();
 
-            horizontalTranslation = -(bitmapWidth - mDisplayMetrics.widthPixels) / 2f;
-            verticalTranslation = -(bitmapHeight - mDisplayMetrics.heightPixels) / 2f;
+            horizontalTranslation = -(bitmapWidth - localScreenWidth) / 2f;
+            verticalTranslation = -(bitmapHeight - localScreenHeight) / 2f;
 
             //draw sub image
             canvas.drawBitmap(sub, horizontalTranslation, verticalTranslation, mBitmapPaint);

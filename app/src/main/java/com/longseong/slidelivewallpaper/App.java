@@ -1,11 +1,13 @@
 package com.longseong.slidelivewallpaper;
 
 import android.app.Application;
+import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 
 import com.longseong.slidelivewallpaper.preference.PreferenceData;
+import com.longseong.slidelivewallpaper.wallpaper.LiveWallpaperService;
 
 public class App extends Application {
 

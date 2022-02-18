@@ -1,16 +1,21 @@
 package com.longseong.slidelivewallpaper.wallpaper;
 
+import android.content.res.Configuration;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.os.Handler;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
+import android.widget.Toast;
+
+import com.longseong.slidelivewallpaper.App;
 
 import java.util.LinkedList;
 
 public class LiveWallpaperService extends WallpaperService {
 
     private static LinkedList<WallpaperEngine> mWallpaperEngineList = new LinkedList<>();
+
+    public static int screenOrientation;
 
     private WallpaperEngine mWallpaperEngine;
 
@@ -23,10 +28,18 @@ public class LiveWallpaperService extends WallpaperService {
     }
 
     public static LinkedList<WallpaperEngine> getWallpaperEngineList() {
-
-
-
         return mWallpaperEngineList;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        screenOrientation = newConfig.orientation;
+
+        mWallpaperEngine.mWallpaperHandler.removeCallbacks(mWallpaperEngine.mWallpaperRunnable);
+        mWallpaperEngine.mFileBitmapDrawer.configChanged();
+        mWallpaperEngine.mWallpaperHandler.post(mWallpaperEngine.mWallpaperRunnable);
     }
 
     @Override
@@ -44,7 +57,6 @@ public class LiveWallpaperService extends WallpaperService {
     public class WallpaperEngine extends WallpaperService.Engine {
 
         private long mServiceStartedTime;
-        private Paint mPaint;
 
         private Handler mWallpaperHandler;
         private Runnable mWallpaperRunnable;
@@ -78,10 +90,6 @@ public class LiveWallpaperService extends WallpaperService {
         public void onDestroy() {
             super.onDestroy();
             mWallpaperEngineList.remove(this);
-        }
-
-        private void initPaint() {
-            mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         }
 
         private void initFileBitmapDrawer() {

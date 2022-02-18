@@ -1,11 +1,9 @@
 package com.longseong.slidelivewallpaper;
 
 import android.app.WallpaperManager;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,8 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.longseong.slidelivewallpaper.preference.PrefHolder;
-import com.longseong.slidelivewallpaper.preference.PreferenceIdBundle;
+import com.longseong.slidelivewallpaper.R;
 import com.longseong.slidelivewallpaper.preference.PreferenceListAdapter;
 import com.longseong.slidelivewallpaper.preference.PreferenceService;
 import com.longseong.slidelivewallpaper.wallpaper.LiveWallpaperService;
