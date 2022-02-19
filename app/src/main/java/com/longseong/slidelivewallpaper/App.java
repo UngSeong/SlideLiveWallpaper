@@ -33,4 +33,8 @@ public class App extends Application {
         display.getRealMetrics(mDisplayMetrics);
     }
 
+    public void requestInitDisplayMetrics() {
+        initDisplayMetrics();
+    }
+
 }

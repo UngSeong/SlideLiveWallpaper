@@ -6,11 +6,9 @@ import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PRE
 import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PREF_ID_FPS_LIMIT;
 import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PREF_ID_IMAGE_DURATION;
 import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PREF_ID_IMAGE_FADE_DURATION;
-import static com.longseong.slidelivewallpaper.wallpaper.LiveWallpaperService.screenOrientation;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -73,7 +71,10 @@ public class FileBitmapDrawer {
     //scene (그려진 화면)
     private Bitmap mDefaultBitmap;
     private LinkedList<Bitmap> mLoadedBitmapQueue;
+    private LinkedList<Bitmap> mResizedBitmapQueue;
     private LinkedList<Integer> mLoadedBitmapIndexQueue;
+    private Bitmap mResizedMainBitmap;
+    private Bitmap mResizedSubBitmap;
 
     //image index (이미지 순서)
     private int mFullIndex;
@@ -86,6 +87,7 @@ public class FileBitmapDrawer {
     private int mFps;
     private int mFpsAvg;
     private final LinkedList<Integer> mFpsList = new LinkedList<>();
+    private boolean mImageInitializing;
     private boolean mImageFilesLoading;
     private boolean mImageFilesSorting;
     private int mSortingImage;
@@ -93,6 +95,11 @@ public class FileBitmapDrawer {
     public FileBitmapDrawer(LiveWallpaperService liveWallpaperService) {
         mContext = liveWallpaperService;
         mEngine = liveWallpaperService.getWallpaperEngine();
+        init();
+    }
+
+    private void init() {
+        mImageInitializing = true;
         initBitmap();
         initCanvas();
         initPaint();
@@ -100,11 +107,13 @@ public class FileBitmapDrawer {
         initPreferenceData();
         initDefaultBitmap();
         initFiles();
+        mImageInitializing = false;
     }
 
     public void configChanged() {
         initBitmap();
         initCanvas();
+        resizeLoadedBitmap(true);
     }
 
     private void initBitmapLoader() {
@@ -151,6 +160,7 @@ public class FileBitmapDrawer {
 
         if (mImageFiles.size() == 0 || mLoadedBitmapQueue == null) {
             mLoadedBitmapQueue = new LinkedList<>();
+            mResizedBitmapQueue = new LinkedList<>();
             mLoadedBitmapIndexQueue = new LinkedList<>();
         }
 
@@ -163,6 +173,7 @@ public class FileBitmapDrawer {
             }
 
         }
+        resizeLoadedBitmap(false);
     }
 
     private void getChild(LinkedList<DocumentFile> list, DocumentFile parent) {
@@ -186,13 +197,9 @@ public class FileBitmapDrawer {
     }
 
     private void initBitmap() {
-        if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
-            localScreenWidth = mDisplayMetrics.widthPixels;
-            localScreenHeight = mDisplayMetrics.heightPixels;
-        } else {
-            localScreenWidth = mDisplayMetrics.heightPixels;
-            localScreenHeight = mDisplayMetrics.widthPixels;
-        }
+        localScreenWidth = mDisplayMetrics.widthPixels;
+        localScreenHeight = mDisplayMetrics.heightPixels;
+
         mBitmap = Bitmap.createBitmap((int) localScreenWidth, (int) localScreenHeight, Bitmap.Config.ARGB_8888);
     }
 
@@ -219,6 +226,7 @@ public class FileBitmapDrawer {
         canvas.drawColor(Color.BLACK);
         canvas.drawBitmap(mDefaultBitmap, 0, 0, mBitmapPaint);
         mDefaultBitmap = bitmap;
+        mResizedMainBitmap = mResizedSubBitmap = mDefaultBitmap;
     }
 
     private void loadBitmapIndex(int index) {
@@ -253,21 +261,14 @@ public class FileBitmapDrawer {
             bitmap = mDefaultBitmap;
         }
 
-        int bitmapWidth;
-        int bitmapHeight;
-
-        float horizontalScale;
-        float verticalScale;
-        float compoundScale;
-
-        bitmapWidth = bitmap.getWidth();
-        bitmapHeight = bitmap.getHeight();
-
-        horizontalScale = bitmapWidth / localScreenWidth;
-        verticalScale = bitmapHeight / localScreenHeight;
-        compoundScale = Math.min(horizontalScale, verticalScale);
-
-        bitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
+//        int bitmapWidth = bitmap.getWidth();
+//        int bitmapHeight = bitmap.getHeight();
+//
+//        float horizontalScale = bitmapWidth / localScreenWidth;
+//        float verticalScale = bitmapHeight / localScreenHeight;
+//        float compoundScale = Math.min(horizontalScale, verticalScale);
+//
+//        bitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
 
         //선입선출 add -> pop
         if (mLoadedBitmapIndexQueue.size() > 1 && mLoadedBitmapIndexQueue.getLast() == INDEX_NULL) {
@@ -277,6 +278,67 @@ public class FileBitmapDrawer {
             mLoadedBitmapQueue.add(bitmap);
             mLoadedBitmapIndexQueue.add(index);
         }
+
+        if (!mImageInitializing) {
+            resizeLoadedBitmap(false);
+        }
+    }
+
+    private void resizeLoadedBitmap(boolean configChanged) {
+
+        Bitmap bitmap_1 = null;
+        Bitmap bitmap_2 = null;
+        Bitmap bitmap_3;
+
+        int bitmapWidth;
+        int bitmapHeight;
+        float horizontalScale;
+        float verticalScale;
+        float compoundScale;
+
+        if (mResizedBitmapQueue.size() == 0 || configChanged) {
+            bitmap_1 = mLoadedBitmapQueue.get(0);
+
+            bitmapWidth = bitmap_1.getWidth();
+            bitmapHeight = bitmap_1.getHeight();
+
+            horizontalScale = bitmapWidth / localScreenWidth;
+            verticalScale = bitmapHeight / localScreenHeight;
+            compoundScale = Math.min(horizontalScale, verticalScale);
+
+            bitmap_1 = Bitmap.createScaledBitmap(bitmap_1, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
+
+
+            bitmap_2 = mLoadedBitmapQueue.get(1);
+
+            bitmapWidth = bitmap_2.getWidth();
+            bitmapHeight = bitmap_2.getHeight();
+
+            horizontalScale = bitmapWidth / localScreenWidth;
+            verticalScale = bitmapHeight / localScreenHeight;
+            compoundScale = Math.min(horizontalScale, verticalScale);
+
+            bitmap_2 = Bitmap.createScaledBitmap(bitmap_2, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
+        }
+
+        bitmap_3 = mLoadedBitmapQueue.get(2);
+
+        bitmapWidth = bitmap_3.getWidth();
+        bitmapHeight = bitmap_3.getHeight();
+
+        horizontalScale = bitmapWidth / localScreenWidth;
+        verticalScale = bitmapHeight / localScreenHeight;
+        compoundScale = Math.min(horizontalScale, verticalScale);
+
+        bitmap_3 = Bitmap.createScaledBitmap(bitmap_3, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
+
+        if (bitmap_1 != null) {
+            mResizedBitmapQueue.clear();
+            mResizedBitmapQueue.add(mResizedMainBitmap = BitmapUtil.cropCenterBitmap(bitmap_1, (int) localScreenWidth, (int) localScreenHeight));
+            mResizedBitmapQueue.add(mResizedSubBitmap = BitmapUtil.cropCenterBitmap(bitmap_2, (int) localScreenWidth, (int) localScreenHeight));
+        }
+        mResizedBitmapQueue.add(BitmapUtil.cropCenterBitmap(bitmap_3, (int) localScreenWidth, (int) localScreenHeight));
+
     }
 
     private void loadNextBitmap() {
@@ -295,41 +357,15 @@ public class FileBitmapDrawer {
         //clear
         canvas.drawColor(Color.BLACK);
 
-        Bitmap main;
-        Bitmap sub;
-
-        int bitmapWidth;
-        int bitmapHeight;
-
-        float horizontalTranslation;
-        float verticalTranslation;
-
-        // load bitmap
-        main = mLoadedBitmapQueue.get(0);
-        sub = mLoadedBitmapQueue.get(1);
-
-        //scale main image
-        bitmapWidth = main.getWidth();
-        bitmapHeight = main.getHeight();
-
-        horizontalTranslation = -(bitmapWidth - localScreenWidth) / 2f;
-        verticalTranslation = -(bitmapHeight - localScreenHeight) / 2f;
-
         //draw main image
         mBitmapPaint.setAlpha(0xFF);
-        canvas.drawBitmap(main, horizontalTranslation, verticalTranslation, mBitmapPaint);
+        canvas.drawBitmap(mResizedMainBitmap, 0, 0, mBitmapPaint);
 
         mBitmapPaint.setAlpha((int) (0xFF * mDurationPercentage));
         if (mBitmapPaint.getAlpha() > 0) {
-            //scale sub image
-            bitmapWidth = sub.getWidth();
-            bitmapHeight = sub.getHeight();
-
-            horizontalTranslation = -(bitmapWidth - localScreenWidth) / 2f;
-            verticalTranslation = -(bitmapHeight - localScreenHeight) / 2f;
 
             //draw sub image
-            canvas.drawBitmap(sub, horizontalTranslation, verticalTranslation, mBitmapPaint);
+            canvas.drawBitmap(mResizedSubBitmap, 0, 0, mBitmapPaint);
         }
     }
 
@@ -340,11 +376,13 @@ public class FileBitmapDrawer {
                 "하위 디렉터리 포함: ",
                 "이미지 지속시간: ",
                 "이미지 페이드 지속시간: ",
-                "이미지 로드중: ",
-                "이미지 정렬중: ",
+                "이미지 초기화중: ",
+                "이미지 파일 로드중: ",
+                "이미지 파일 정렬중: ",
                 "정렬중인 이미지 인덱스: ",
                 "로드 된 이미지 파일 개수: ",
                 "로드 된 비트맵 개수: ",
+                "리사이즈 된 비트맵 개수: ",
                 "FPS: ",
                 "메인 비트맵 인덱스: ",
                 "서브 비트맵 인덱스: ",
@@ -356,11 +394,13 @@ public class FileBitmapDrawer {
                 pref_includeSubDirectory + "",
                 pref_imageDuration + "ms",
                 pref_imageFadeDuration + "ms",
+                mImageInitializing + "",
                 mImageFilesLoading + "",
                 mImageFilesSorting + "",
-                mSortingImage == INDEX_NULL ? "INDEX_NULL" : mSortingImage + "",
+                mSortingImage == INDEX_NULL ? "정렬 완료" : mSortingImage + "",
                 mImageFiles.size() + "",
                 mLoadedBitmapQueue.size() + "",
+                mResizedBitmapQueue.size() + "",
                 +mFps + "/" + pref_fpsLimit + "(" + mFpsAvg + ")",
                 (mLoadedBitmapIndexQueue.get(0) == INDEX_NULL ? "INDEX_NULL" : String.valueOf(mLoadedBitmapIndexQueue.get(0))),
                 (mLoadedBitmapIndexQueue.get(1) == INDEX_NULL ? "INDEX_NULL" : String.valueOf(mLoadedBitmapIndexQueue.get(1))),
@@ -439,12 +479,21 @@ public class FileBitmapDrawer {
             mFullIndex = currentIndex;
             if (mLoadedBitmapQueue.size() >= MAX_LOADED_BITMAP) {
                 mLoadedBitmapQueue.pop();
+                mResizedBitmapQueue.pop();
                 mLoadedBitmapIndexQueue.pop();
+
+                try {
+                    mResizedMainBitmap = mResizedBitmapQueue.get(0);
+                    mResizedSubBitmap = mResizedBitmapQueue.get(1);
+                } catch (IndexOutOfBoundsException e) {
+                    //do nothing
+                }
             }
             loadNextBitmap();
         }
     }
 
+    @Deprecated
     public Bitmap exportBitmap() {
         updateTick();
         drawBitmap(mCanvas);
