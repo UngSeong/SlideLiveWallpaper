@@ -121,8 +121,6 @@ public class LiveWallpaperService extends WallpaperService {
             try {
                 Canvas wallpaperCanvas = getSurfaceHolder().lockCanvas();
 
-//                wallpaperCanvas.scale(0.5f,0.5f);
-
                 //비트맵 드로어에서 비트맵을 받아와서 다시 그림 -> 같은 비트맵을 두번 그리게 됨
                 //wallpaperCanvas.drawBitmap(mFileBitmapDrawer.exportBitmap(), 0, 0, mPaint);
 

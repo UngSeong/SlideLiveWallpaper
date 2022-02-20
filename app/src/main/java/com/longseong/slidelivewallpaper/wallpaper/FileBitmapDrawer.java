@@ -9,11 +9,13 @@ import static com.longseong.slidelivewallpaper.preference.PreferenceIdBundle.PRE
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ImageDecoder;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Build;
@@ -24,6 +26,7 @@ import android.util.Log;
 
 import androidx.documentfile.provider.DocumentFile;
 
+import com.longseong.slidelivewallpaper.BuildConfig;
 import com.longseong.slidelivewallpaper.R;
 import com.longseong.slidelivewallpaper.preference.PreferenceData;
 
@@ -332,13 +335,39 @@ public class FileBitmapDrawer {
 
         bitmap_3 = Bitmap.createScaledBitmap(bitmap_3, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
 
+
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            resizeLoadedBitmap_VersionQ_orOlder(configChanged, bitmap_1, bitmap_2, bitmap_3);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            resizeLoadedBitmap_VersionR_orNewer(configChanged, bitmap_1, bitmap_2, bitmap_3);
+        }
+
+    }
+
+    private void resizeLoadedBitmap_VersionQ_orOlder(boolean configChanged, Bitmap bitmap_1, Bitmap bitmap_2, Bitmap bitmap_3) {
+        Matrix matrix = new Matrix();
+        if (LiveWallpaperService.screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            matrix.postRotate(90);
+        }
+
+        if (bitmap_1 != null) {
+            bitmap_1 = BitmapUtil.cropCenterBitmap(bitmap_1, (int) localScreenWidth, (int) localScreenHeight);
+            bitmap_2 = BitmapUtil.cropCenterBitmap(bitmap_2, (int) localScreenWidth, (int) localScreenHeight);
+            mResizedBitmapQueue.clear();
+            mResizedBitmapQueue.add(mResizedMainBitmap = Bitmap.createBitmap(bitmap_1, 0, 0, (int) localScreenWidth, (int) localScreenHeight, matrix, true));
+            mResizedBitmapQueue.add(mResizedSubBitmap = Bitmap.createBitmap(bitmap_2, 0, 0, (int) localScreenWidth, (int) localScreenHeight, matrix, true));
+        }
+        bitmap_3 = BitmapUtil.cropCenterBitmap(bitmap_3, (int) localScreenWidth, (int) localScreenHeight);
+        mResizedBitmapQueue.add(Bitmap.createBitmap(bitmap_3, 0, 0, (int) localScreenWidth, (int) localScreenHeight, matrix, true));
+    }
+
+    private void resizeLoadedBitmap_VersionR_orNewer(boolean configChanged, Bitmap bitmap_1, Bitmap bitmap_2, Bitmap bitmap_3) {
         if (bitmap_1 != null) {
             mResizedBitmapQueue.clear();
             mResizedBitmapQueue.add(mResizedMainBitmap = BitmapUtil.cropCenterBitmap(bitmap_1, (int) localScreenWidth, (int) localScreenHeight));
             mResizedBitmapQueue.add(mResizedSubBitmap = BitmapUtil.cropCenterBitmap(bitmap_2, (int) localScreenWidth, (int) localScreenHeight));
         }
         mResizedBitmapQueue.add(BitmapUtil.cropCenterBitmap(bitmap_3, (int) localScreenWidth, (int) localScreenHeight));
-
     }
 
     private void loadNextBitmap() {
