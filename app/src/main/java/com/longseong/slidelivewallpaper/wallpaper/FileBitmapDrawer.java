@@ -274,7 +274,7 @@ public class FileBitmapDrawer {
 //        bitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
 
         //선입선출 add -> pop
-        if (mLoadedBitmapIndexQueue.size() > 1 && mLoadedBitmapIndexQueue.getLast() == INDEX_NULL) {
+        if (mLoadedBitmapIndexQueue.size() == MAX_LOADED_BITMAP) {
             mLoadedBitmapQueue.set(mLoadedBitmapQueue.size() - 1, bitmap);
             mLoadedBitmapIndexQueue.set(mLoadedBitmapQueue.size() - 1, index);
         } else {
@@ -299,7 +299,7 @@ public class FileBitmapDrawer {
         float verticalScale;
         float compoundScale;
 
-        if (mResizedBitmapQueue.size() == 0 || configChanged) {
+        if (mResizedBitmapQueue.size() == 0 || mResizedBitmapQueue.size() >= MAX_LOADED_BITMAP || configChanged) {
             bitmap_1 = mLoadedBitmapQueue.get(0);
 
             bitmapWidth = bitmap_1.getWidth();
@@ -337,14 +337,14 @@ public class FileBitmapDrawer {
 
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            resizeLoadedBitmap_VersionQ_orOlder(configChanged, bitmap_1, bitmap_2, bitmap_3);
+            resizeLoadedBitmap_VersionQ_orOlder(bitmap_1, bitmap_2, bitmap_3);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            resizeLoadedBitmap_VersionR_orNewer(configChanged, bitmap_1, bitmap_2, bitmap_3);
+            resizeLoadedBitmap_VersionR_orNewer(bitmap_1, bitmap_2, bitmap_3);
         }
 
     }
 
-    private void resizeLoadedBitmap_VersionQ_orOlder(boolean configChanged, Bitmap bitmap_1, Bitmap bitmap_2, Bitmap bitmap_3) {
+    private void resizeLoadedBitmap_VersionQ_orOlder(Bitmap bitmap_1, Bitmap bitmap_2, Bitmap bitmap_3) {
         Matrix matrix = new Matrix();
         if (LiveWallpaperService.screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
             matrix.postRotate(90);
@@ -361,7 +361,7 @@ public class FileBitmapDrawer {
         mResizedBitmapQueue.add(Bitmap.createBitmap(bitmap_3, 0, 0, (int) localScreenWidth, (int) localScreenHeight, matrix, true));
     }
 
-    private void resizeLoadedBitmap_VersionR_orNewer(boolean configChanged, Bitmap bitmap_1, Bitmap bitmap_2, Bitmap bitmap_3) {
+    private void resizeLoadedBitmap_VersionR_orNewer(Bitmap bitmap_1, Bitmap bitmap_2, Bitmap bitmap_3) {
         if (bitmap_1 != null) {
             mResizedBitmapQueue.clear();
             mResizedBitmapQueue.add(mResizedMainBitmap = BitmapUtil.cropCenterBitmap(bitmap_1, (int) localScreenWidth, (int) localScreenHeight));
@@ -371,7 +371,8 @@ public class FileBitmapDrawer {
     }
 
     private void loadNextBitmap() {
-        bitmapLoaderHandler.post(bitmapLoaderRunnable);
+        //bitmapLoaderHandler.post(bitmapLoaderRunnable);
+        new Thread(bitmapLoaderRunnable).start();
     }
 
     private void drawBitmap(Canvas canvas) {
@@ -497,6 +498,9 @@ public class FileBitmapDrawer {
         }
 
         int currentIndex = getCurrentIndex(currentTime);
+        if (mImageFiles.size() == 0) {
+            currentIndex = INDEX_NULL;
+        }
 
         computeFps(currentTime);
 
@@ -504,8 +508,14 @@ public class FileBitmapDrawer {
 
         if (mFullIndex != currentIndex) {
 
-            mMainIndex = currentIndex % mImageFiles.size();
-            mFullIndex = currentIndex;
+            if (mImageFiles.size() == 0) {
+                mMainIndex = INDEX_NULL;
+                mFullIndex = INDEX_NULL;
+            } else {
+                mMainIndex = currentIndex % mImageFiles.size();
+                mFullIndex = currentIndex;
+            }
+
             if (mLoadedBitmapQueue.size() >= MAX_LOADED_BITMAP) {
                 mLoadedBitmapQueue.pop();
                 mResizedBitmapQueue.pop();
