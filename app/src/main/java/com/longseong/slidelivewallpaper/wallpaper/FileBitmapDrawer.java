@@ -26,7 +26,6 @@ import android.util.Log;
 
 import androidx.documentfile.provider.DocumentFile;
 
-import com.longseong.slidelivewallpaper.BuildConfig;
 import com.longseong.slidelivewallpaper.R;
 import com.longseong.slidelivewallpaper.preference.PreferenceData;
 
@@ -90,7 +89,8 @@ public class FileBitmapDrawer {
     private int mFps;
     private int mFpsAvg;
     private final LinkedList<Integer> mFpsList = new LinkedList<>();
-    private boolean mImageInitializing;
+    private boolean mInitialized;
+    private boolean mFileInitialized;
     private boolean mImageFilesLoading;
     private boolean mImageFilesSorting;
     private int mSortingImage;
@@ -98,19 +98,28 @@ public class FileBitmapDrawer {
     public FileBitmapDrawer(LiveWallpaperService liveWallpaperService) {
         mContext = liveWallpaperService;
         mEngine = liveWallpaperService.getWallpaperEngine();
-        init();
+        initFiles();
     }
 
-    private void init() {
-        mImageInitializing = true;
+    public void init() {
+        if (!mInitialized) {
+            initDrawer();
+        }
+    }
+
+    private void initDrawer() {
         initBitmap();
         initCanvas();
         initPaint();
         initBitmapLoader();
         initPreferenceData();
         initDefaultBitmap();
-        initFiles();
-        mImageInitializing = false;
+//        initFiles();
+        mInitialized = true;
+
+        if (mFileInitialized) {
+            resizeLoadedBitmap(false);
+        }
     }
 
     public void configChanged() {
@@ -134,6 +143,7 @@ public class FileBitmapDrawer {
     }
 
     private void initFiles() {
+        mFileInitialized = false;
         if (pref_directoryUri != null && !pref_directoryUri.toString().equals(PreferenceData.default_directoryUri)) {
             mRootDocument = DocumentFile.fromTreeUri(mContext, pref_directoryUri);
         }
@@ -144,8 +154,8 @@ public class FileBitmapDrawer {
             mSortingImage = INDEX_NULL;
             getChild(mImageFiles, mRootDocument);
 
-            mImageFilesSorting = true;
             mImageFilesLoading = false;
+            mImageFilesSorting = true;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 mImageFiles.sort((o1, o2) -> {
@@ -155,28 +165,36 @@ public class FileBitmapDrawer {
                 mSortingImage = INDEX_NULL;
             }
             mImageFilesSorting = false;
-        }).start();
+        }, "이미지 탐색").start();
 
-        while (mImageFilesLoading && mImageFiles.size() == 0) {
-            //이미지가 한개 이상 로드 되거나 로드가 끝날 때까지 대기
-        }
 
-        if (mImageFiles.size() == 0 || mLoadedBitmapQueue == null) {
-            mLoadedBitmapQueue = new LinkedList<>();
-            mResizedBitmapQueue = new LinkedList<>();
-            mLoadedBitmapIndexQueue = new LinkedList<>();
-        }
-
-        mMainIndex = getCurrentIndex(System.currentTimeMillis());
-        for (int i = 0; mLoadedBitmapQueue.size() < MAX_LOADED_BITMAP; i++) {
-            if (mImageFiles.size() > 0) {
-                loadBitmapIndex(i % mImageFiles.size());
-            } else {
-                loadBitmapIndex(INDEX_NULL);
+        new Thread(() -> {
+            while (!mInitialized || mImageFilesLoading && mImageFiles.size() == 0) {
+                //드로어가 초기화 될때까지 대기
+                //이미지가 한개 이상 로드 되거나 로드가 끝날 때까지 대기
             }
 
-        }
-        resizeLoadedBitmap(false);
+            if (mImageFiles.size() == 0 || mLoadedBitmapQueue == null) {
+                mLoadedBitmapQueue = new LinkedList<>();
+                mResizedBitmapQueue = new LinkedList<>();
+                mLoadedBitmapIndexQueue = new LinkedList<>();
+            }
+
+            mMainIndex = getCurrentIndex(System.currentTimeMillis());
+            for (int i = 0; mLoadedBitmapQueue.size() < MAX_LOADED_BITMAP; i++) {
+                if (mImageFiles.size() > 0) {
+                    loadBitmapIndex(i % mImageFiles.size());
+                } else {
+                    loadBitmapIndex(INDEX_NULL);
+                }
+
+            }
+            mFileInitialized = false;
+
+            if (mInitialized) {
+                resizeLoadedBitmap(false);
+            }
+        }, "이미지 로딩").start();
     }
 
     private void getChild(LinkedList<DocumentFile> list, DocumentFile parent) {
@@ -200,8 +218,10 @@ public class FileBitmapDrawer {
     }
 
     private void initBitmap() {
-        localScreenWidth = mDisplayMetrics.widthPixels;
-        localScreenHeight = mDisplayMetrics.heightPixels;
+//        localScreenWidth = mDisplayMetrics.widthPixels;
+//        localScreenHeight = mDisplayMetrics.heightPixels;
+        localScreenWidth = mEngine.mWidth;
+        localScreenHeight = mEngine.mHeight;
 
         mBitmap = Bitmap.createBitmap((int) localScreenWidth, (int) localScreenHeight, Bitmap.Config.ARGB_8888);
     }
@@ -222,6 +242,7 @@ public class FileBitmapDrawer {
         mForegroundPaint.setColor(0x7F000000);
     }
 
+    //임시 기본 비트맵
     private void initDefaultBitmap() {
         mDefaultBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.dorabell);
         Bitmap bitmap = Bitmap.createBitmap(mDefaultBitmap.getWidth(), mDefaultBitmap.getHeight(), Bitmap.Config.ARGB_8888);
@@ -264,16 +285,7 @@ public class FileBitmapDrawer {
             bitmap = mDefaultBitmap;
         }
 
-//        int bitmapWidth = bitmap.getWidth();
-//        int bitmapHeight = bitmap.getHeight();
-//
-//        float horizontalScale = bitmapWidth / localScreenWidth;
-//        float verticalScale = bitmapHeight / localScreenHeight;
-//        float compoundScale = Math.min(horizontalScale, verticalScale);
-//
-//        bitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
-
-        //선입선출 add -> pop
+        //메모리 사용 최소화를 위해 비트맵은 최대 개수 이상으로 로드할 수 없게 함
         if (mLoadedBitmapIndexQueue.size() == MAX_LOADED_BITMAP) {
             mLoadedBitmapQueue.set(mLoadedBitmapQueue.size() - 1, bitmap);
             mLoadedBitmapIndexQueue.set(mLoadedBitmapQueue.size() - 1, index);
@@ -282,7 +294,7 @@ public class FileBitmapDrawer {
             mLoadedBitmapIndexQueue.add(index);
         }
 
-        if (!mImageInitializing) {
+        if (!mInitialized) {
             resizeLoadedBitmap(false);
         }
     }
@@ -406,7 +418,6 @@ public class FileBitmapDrawer {
                 "하위 디렉터리 포함: ",
                 "이미지 지속시간: ",
                 "이미지 페이드 지속시간: ",
-                "이미지 초기화중: ",
                 "이미지 파일 로드중: ",
                 "이미지 파일 정렬중: ",
                 "정렬중인 이미지 인덱스: ",
@@ -424,7 +435,6 @@ public class FileBitmapDrawer {
                 pref_includeSubDirectory + "",
                 pref_imageDuration + "ms",
                 pref_imageFadeDuration + "ms",
-                mImageInitializing + "",
                 mImageFilesLoading + "",
                 mImageFilesSorting + "",
                 mSortingImage == INDEX_NULL ? "정렬 완료" : mSortingImage + "",
@@ -516,7 +526,7 @@ public class FileBitmapDrawer {
                 mFullIndex = currentIndex;
             }
 
-            if (mLoadedBitmapQueue.size() >= MAX_LOADED_BITMAP) {
+            if (mLoadedBitmapQueue.size() >= MAX_LOADED_BITMAP && mFileInitialized) {
                 mLoadedBitmapQueue.pop();
                 mResizedBitmapQueue.pop();
                 mLoadedBitmapIndexQueue.pop();

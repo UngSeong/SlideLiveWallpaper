@@ -64,7 +64,9 @@ public class LiveWallpaperService extends WallpaperService {
 
     public class WallpaperEngine extends WallpaperService.Engine {
 
-        private long mServiceStartedTime;
+        protected int mWidth;
+        protected int mHeight;
+        protected long mServiceStartedTime;
 
         private Handler mWallpaperHandler;
         private Runnable mWallpaperRunnable;
@@ -82,6 +84,17 @@ public class LiveWallpaperService extends WallpaperService {
             //initPaint();
             initFileBitmapDrawer();
             initWallpaperHandler();
+        }
+
+        @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            super.onSurfaceChanged(holder, format, width, height);
+
+            mWidth = width;
+            mHeight = height;
+
+            //init() 함수는 처음 한번만 작동함
+            mFileBitmapDrawer.init();
         }
 
         @Override
