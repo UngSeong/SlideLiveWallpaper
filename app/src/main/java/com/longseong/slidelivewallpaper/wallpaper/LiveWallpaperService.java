@@ -36,11 +36,6 @@ public class LiveWallpaperService extends WallpaperService {
         super.onConfigurationChanged(newConfig);
 
         screenOrientation = newConfig.orientation;
-        ((App)getApplicationContext()).requestInitDisplayMetrics();
-
-        mWallpaperEngine.mWallpaperHandler.removeCallbacks(mWallpaperEngine.mWallpaperRunnable);
-        mWallpaperEngine.mFileBitmapDrawer.configChanged();
-        mWallpaperEngine.mWallpaperHandler.post(mWallpaperEngine.mWallpaperRunnable);
     }
 
     @Override
@@ -95,6 +90,10 @@ public class LiveWallpaperService extends WallpaperService {
 
             //init() 함수는 처음 한번만 작동함
             mFileBitmapDrawer.init();
+
+            mWallpaperEngine.mWallpaperHandler.removeCallbacks(mWallpaperEngine.mWallpaperRunnable);
+            mWallpaperEngine.mFileBitmapDrawer.configChanged();
+            mWallpaperEngine.mWallpaperHandler.post(mWallpaperEngine.mWallpaperRunnable);
         }
 
         @Override

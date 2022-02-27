@@ -16,8 +16,8 @@ public class PreferenceData {
 
     private static final String PREFERENCE_NAME = BuildConfig.APPLICATION_ID + "preference.data.id";
 
-    public static final String default_imageDuration = String.valueOf(30);
-    public static final String default_imageFadeDuration = String.valueOf(5);
+    public static final String default_imageDuration = String.valueOf(15000);
+    public static final String default_imageFadeDuration = String.valueOf(5000);
     public static final String default_directoryUri = "지정 된 경로 없음";
     public static final String default_fpsLimit = String.valueOf(30);
 

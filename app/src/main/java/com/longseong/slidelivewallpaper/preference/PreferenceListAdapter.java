@@ -107,7 +107,7 @@ public class PreferenceListAdapter extends RecyclerView.Adapter<PrefHolder> {
             }
             case PREF_ID_IMAGE_DURATION: {
                 int min = Integer.parseInt(mPreferenceData.getData(PREF_ID_IMAGE_FADE_DURATION));
-                input.setError(min + " ~ 60");
+                input.setError(min + " ~ 60000 (ms)");
                 input.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_NORMAL);
                 input.getEditText().setOnFocusChangeListener((v, hasFocus) -> {
                     EditText editText = ((EditText) v);
@@ -118,7 +118,7 @@ public class PreferenceListAdapter extends RecyclerView.Adapter<PrefHolder> {
                         if (valueString.equals("")) {
                             valueString = PreferenceData.getDefaultData(preferenceId);
                         }
-                        int max = 60;
+                        int max = 60000;
                         int value = Integer.parseInt(valueString);
                         if (value < min) {
                             valueString = String.valueOf(min);
@@ -131,7 +131,7 @@ public class PreferenceListAdapter extends RecyclerView.Adapter<PrefHolder> {
                 break;
             }
             case PREF_ID_IMAGE_FADE_DURATION: {
-                input.setError("2 ~ 10");
+                input.setError("2000 ~ 20000 (ms)");
                 input.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_NORMAL);
                 input.getEditText().setOnFocusChangeListener((v, hasFocus) -> {
                     EditText editText = ((EditText) v);
@@ -142,8 +142,8 @@ public class PreferenceListAdapter extends RecyclerView.Adapter<PrefHolder> {
                         if (valueString.equals("")) {
                             valueString = PreferenceData.getDefaultData(preferenceId);
                         }
-                        int min = 2;
-                        int max = 10;
+                        int min = 2000;
+                        int max = 20000;
                         int value = Integer.parseInt(valueString);
                         if (value < min) {
                             valueString = String.valueOf(min);
@@ -185,7 +185,7 @@ public class PreferenceListAdapter extends RecyclerView.Adapter<PrefHolder> {
                 break;
             }
             case PREF_ID_FPS_LIMIT: {
-                input.setError("10 ~ 60");
+                input.setError("10 ~ 60 (fps)");
                 input.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_NORMAL);
                 input.getEditText().setOnFocusChangeListener((v, hasFocus) -> {
                     EditText editText = ((EditText) v);
