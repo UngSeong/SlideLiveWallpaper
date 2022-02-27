@@ -17,22 +17,29 @@ import android.graphics.Color;
 import android.graphics.ImageDecoder;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.MediaStore;
-import android.util.Log;
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.longseong.slidelivewallpaper.R;
 import com.longseong.slidelivewallpaper.preference.PreferenceData;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 public class FileBitmapDrawer {
+
+    public static final String BITMAP_ERROR_1 = "이미지가 로드되지 않음";
+    public static final String BITMAP_ERROR_2 = "비트맵의 인덱스가 NULL임";
+    public static final String BITMAP_ERROR_3 = "도큐먼트 파일이 NULL임";
+    public static final String BITMAP_ERROR_4 = "도큐먼트를 찾을 수 없음";
 
     //상수
     private static final int MAX_LOADED_BITMAP = 3;
@@ -58,9 +65,12 @@ public class FileBitmapDrawer {
     //canvas
     private Bitmap mBitmap;
     private Canvas mCanvas;
-    private Paint mBitmapPaint;
-    private Paint mTextPaint;
-    private Paint mForegroundPaint;
+    private Paint mPaint;
+    private Paint mMainBitmapPaint;
+    private Paint mSubBitmapPaint;
+    private Paint mCoverBitmapPaint;
+    private Paint mDebugTextPaint;
+    private Paint mDebugBackgroundPaint;
 
     //document (파일 접근)
     private DocumentFile mRootDocument;
@@ -72,11 +82,11 @@ public class FileBitmapDrawer {
 
     //scene (그려진 화면)
     private Bitmap mDefaultBitmap;
-    private LinkedList<Bitmap> mLoadedBitmapQueue;
-    private LinkedList<Bitmap> mResizedBitmapQueue;
-    private LinkedList<Integer> mLoadedBitmapIndexQueue;
     private Bitmap mResizedMainBitmap;
     private Bitmap mResizedSubBitmap;
+    private final LinkedList<Bitmap> mLoadedBitmapQueue = new LinkedList<>();
+    private final LinkedList<Bitmap> mResizedBitmapQueue = new LinkedList<>();
+    private final LinkedList<Integer> mLoadedBitmapIndexQueue = new LinkedList<>();
 
     //image index (이미지 순서)
     private int mFullIndex;
@@ -84,21 +94,32 @@ public class FileBitmapDrawer {
 
     //image progress (이미지 진행 상태)
     private float mDurationPercentage;
+    private float mFadeDurationPercentage;
     private long mPreviousTime;
     private int mTakenTime;
     private int mFps;
     private int mFpsAvg;
     private final LinkedList<Integer> mFpsList = new LinkedList<>();
-    private boolean mInitialized;
-    private boolean mFileInitialized;
     private boolean mImageFilesLoading;
     private boolean mImageFilesSorting;
     private int mSortingImage;
 
+    //status
+    private boolean mInitialized;
+    private boolean mFileInitialized;
+    private boolean mWallpaperReady;
+
+    //wallpaper cover (배경화면 커버)
+    private float mCoverAlpha;
+    private Canvas mCoverCanvas;
+    private Bitmap mCoverBitmap;
+    private final LinkedHashMap<Integer, String> mCoverReasonMap = new LinkedHashMap<>();
+
+
     public FileBitmapDrawer(LiveWallpaperService liveWallpaperService) {
         mContext = liveWallpaperService;
         mEngine = liveWallpaperService.getWallpaperEngine();
-        initFiles();
+        initFilesData();
     }
 
     public void init() {
@@ -107,18 +128,26 @@ public class FileBitmapDrawer {
         }
     }
 
+    private void initFilesData() {
+        initPreferenceData();
+        initFiles();
+    }
+
     private void initDrawer() {
         initBitmap();
         initCanvas();
         initPaint();
         initBitmapLoader();
-        initPreferenceData();
+//        initPreferenceData();
         initDefaultBitmap();
 //        initFiles();
         mInitialized = true;
 
         if (mFileInitialized) {
             resizeLoadedBitmap(false);
+            if (mImageFiles.size() > 0) {
+                mWallpaperReady = true;
+            }
         }
     }
 
@@ -143,7 +172,7 @@ public class FileBitmapDrawer {
     }
 
     private void initFiles() {
-        mFileInitialized = false;
+        mWallpaperReady = mFileInitialized = false;
         if (pref_directoryUri != null && !pref_directoryUri.toString().equals(PreferenceData.default_directoryUri)) {
             mRootDocument = DocumentFile.fromTreeUri(mContext, pref_directoryUri);
         }
@@ -174,13 +203,10 @@ public class FileBitmapDrawer {
                 //이미지가 한개 이상 로드 되거나 로드가 끝날 때까지 대기
             }
 
-            if (mImageFiles.size() == 0 || mLoadedBitmapQueue == null) {
-                mLoadedBitmapQueue = new LinkedList<>();
-                mResizedBitmapQueue = new LinkedList<>();
-                mLoadedBitmapIndexQueue = new LinkedList<>();
-            }
+            mLoadedBitmapQueue.clear();
+            mResizedBitmapQueue.clear();
+            mLoadedBitmapIndexQueue.clear();
 
-            mMainIndex = getCurrentIndex(System.currentTimeMillis());
             for (int i = 0; mLoadedBitmapQueue.size() < MAX_LOADED_BITMAP; i++) {
                 if (mImageFiles.size() > 0) {
                     loadBitmapIndex(i % mImageFiles.size());
@@ -189,10 +215,13 @@ public class FileBitmapDrawer {
                 }
 
             }
-            mFileInitialized = false;
+            mFileInitialized = true;
 
             if (mInitialized) {
                 resizeLoadedBitmap(false);
+                if (mImageFiles.size() > 0) {
+                    mWallpaperReady = true;
+                }
             }
         }, "이미지 로딩").start();
     }
@@ -224,22 +253,29 @@ public class FileBitmapDrawer {
         localScreenHeight = mEngine.mHeight;
 
         mBitmap = Bitmap.createBitmap((int) localScreenWidth, (int) localScreenHeight, Bitmap.Config.ARGB_8888);
+        mCoverBitmap = Bitmap.createBitmap((int) localScreenWidth, (int) localScreenHeight, Bitmap.Config.ARGB_8888);
     }
 
     private void initCanvas() {
         mCanvas = new Canvas(mBitmap);
+        mCoverCanvas = new Canvas(mCoverBitmap);
     }
 
     private void initPaint() {
-        mBitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mMainBitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mSubBitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mCoverBitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDebugTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDebugBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        mPaint.setStrokeWidth(2f);
 
         float scaledPixels = TEXT_SIZE * mDisplayMetrics.scaledDensity;
-        mTextPaint.setTextSize(scaledPixels);
-        mTextPaint.setColor(0xFFFFFFFF);
+        mDebugTextPaint.setTextSize(scaledPixels);
+        mDebugTextPaint.setColor(0xFFFFFFFF);
 
-        mForegroundPaint.setColor(0x7F000000);
+        mDebugBackgroundPaint.setColor(0x7F000000);
     }
 
     //임시 기본 비트맵
@@ -248,7 +284,7 @@ public class FileBitmapDrawer {
         Bitmap bitmap = Bitmap.createBitmap(mDefaultBitmap.getWidth(), mDefaultBitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(mDefaultBitmap, 0, 0, mBitmapPaint);
+        canvas.drawBitmap(mDefaultBitmap, 0, 0, mMainBitmapPaint);
         mDefaultBitmap = bitmap;
         mResizedMainBitmap = mResizedSubBitmap = mDefaultBitmap;
     }
@@ -257,18 +293,20 @@ public class FileBitmapDrawer {
         ContentResolver contentResolver = mContext.getContentResolver();
         Bitmap bitmap;
 
-        Log.i("bitmap loaded", index + "번 비트맵 로드됨");
-
         try {
             if (index == INDEX_NULL) {
-                throw new IOException("document index is null");
+                if (!mImageFilesLoading) {
+                    throw new IOException(BITMAP_ERROR_1);
+                } else {
+                    throw new IOException(BITMAP_ERROR_2);
+                }
             }
             if (mImageFiles.get(index) == null) {
-                throw new IOException("document file is null");
+                throw new IOException(BITMAP_ERROR_3);
             }
             if (!mImageFiles.get(index).exists()) {
                 notifyPreferenceChanged(true);
-                throw new IOException("document file not found");
+                throw new IOException(BITMAP_ERROR_4);
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 bitmap = ImageDecoder.decodeBitmap(
@@ -282,6 +320,25 @@ public class FileBitmapDrawer {
                 bitmap = MediaStore.Images.Media.getBitmap(contentResolver, mImageFiles.get(index).getUri());
             }
         } catch (IOException e) {
+            String errorExplanation;
+            switch (e.getMessage()) {
+                case BITMAP_ERROR_1:
+                    errorExplanation = "이미지를 찾을 수 없습니다.\n폴더를 확인해주세요";
+                    break;
+                case BITMAP_ERROR_2:
+                    errorExplanation = "이미지를 찾는중입니다.\n잠시만 기다려주세요";
+                    break;
+                case BITMAP_ERROR_3:
+                    errorExplanation = "도큐먼트가 null입니다.\n본적 없는 상황이니 알려주세요";
+                    break;
+                case BITMAP_ERROR_4:
+                    errorExplanation = "도큐먼트를 찾을 수 없습니다.\n폴더를 확인해주세요";
+                    break;
+                default:
+                    errorExplanation = "이미지를 해석할 수 없습니다.";
+                    break;
+            }
+            mCoverReasonMap.put(index, errorExplanation);
             bitmap = mDefaultBitmap;
         }
 
@@ -294,7 +351,7 @@ public class FileBitmapDrawer {
             mLoadedBitmapIndexQueue.add(index);
         }
 
-        if (!mInitialized) {
+        if (mFileInitialized) {
             resizeLoadedBitmap(false);
         }
     }
@@ -348,10 +405,12 @@ public class FileBitmapDrawer {
         bitmap_3 = Bitmap.createScaledBitmap(bitmap_3, (int) (bitmapWidth / compoundScale), (int) (bitmapHeight / compoundScale), true);
 
 
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            resizeLoadedBitmap_VersionQ_orOlder(bitmap_1, bitmap_2, bitmap_3);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            resizeLoadedBitmap_VersionR_orNewer(bitmap_1, bitmap_2, bitmap_3);
+        synchronized (mResizedBitmapQueue) {
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+                resizeLoadedBitmap_VersionQ_orOlder(bitmap_1, bitmap_2, bitmap_3);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                resizeLoadedBitmap_VersionR_orNewer(bitmap_1, bitmap_2, bitmap_3);
+            }
         }
 
     }
@@ -390,6 +449,10 @@ public class FileBitmapDrawer {
     private void drawBitmap(Canvas canvas) {
         drawImage(canvas);
 
+        if (mCoverBitmapPaint.getAlpha() > 0) {
+            drawCover(canvas);
+        }
+
         if (pref_debug) {
             drawDebugInfo(canvas);
         }
@@ -400,15 +463,76 @@ public class FileBitmapDrawer {
         canvas.drawColor(Color.BLACK);
 
         //draw main image
-        mBitmapPaint.setAlpha(0xFF);
-        canvas.drawBitmap(mResizedMainBitmap, 0, 0, mBitmapPaint);
+        canvas.drawBitmap(mResizedMainBitmap, 0, 0, mMainBitmapPaint);
 
-        mBitmapPaint.setAlpha((int) (0xFF * mDurationPercentage));
-        if (mBitmapPaint.getAlpha() > 0) {
+        if (mFadeDurationPercentage > 0) {
+            mSubBitmapPaint.setAlpha((int) (0xFF * mFadeDurationPercentage));
 
             //draw sub image
-            canvas.drawBitmap(mResizedSubBitmap, 0, 0, mBitmapPaint);
+            canvas.drawBitmap(mResizedSubBitmap, 0, 0, mSubBitmapPaint);
         }
+    }
+
+    private void drawCover(Canvas canvas) {
+        int alpha = mCoverBitmapPaint.getAlpha();
+        if (mWallpaperReady) {
+            alpha -= (int) (0xFF * mTakenTime / 1000f);
+            if (alpha < 0) alpha = 0;
+        } else {
+            alpha += (int) (0xFF * mTakenTime / 1000f);
+            if (alpha > 0) alpha = 255;
+        }
+
+        float sAngle = 270;
+        float fadeProgress = (mFadeDurationPercentage * 360 - (mFullIndex % 2 == 0 ? 360 : 0)) * (1f * pref_imageFadeDuration / pref_imageDuration);
+        float progress = mDurationPercentage * 360 - (mFullIndex % 2 == 0 ? (360 + fadeProgress) : fadeProgress);
+
+        mCoverCanvas.drawColor(ResourcesCompat.getColor(mContext.getResources(), R.color.colorPrimary, null));
+
+        Path path = new Path();
+        path.arcTo(localScreenWidth / 2 - 150, localScreenHeight / 2 - 150, localScreenWidth / 2 + 150, localScreenHeight / 2 + 150,
+                sAngle, progress, false);
+        path.arcTo(localScreenWidth / 2 - 120, localScreenHeight / 2 - 120, localScreenWidth / 2 + 120, localScreenHeight / 2 + 120,
+                progress + sAngle, -progress, false);
+        path.close();
+
+        mPaint.setColor(Color.BLACK);
+        mCoverCanvas.drawPath(path, mPaint);
+
+        if (fadeProgress != 0) {
+            Path fadePath = new Path();
+            fadePath.arcTo(localScreenWidth / 2 - 150, localScreenHeight / 2 - 150, localScreenWidth / 2 + 150, localScreenHeight / 2 + 150,
+                    sAngle + progress, fadeProgress, false);
+            fadePath.arcTo(localScreenWidth / 2 - 120, localScreenHeight / 2 - 120, localScreenWidth / 2 + 120, localScreenHeight / 2 + 120,
+                    sAngle + progress + fadeProgress, -fadeProgress, false);
+            fadePath.close();
+
+            mPaint.setColor(Color.WHITE);
+            mCoverCanvas.drawPath(fadePath, mPaint);
+        }
+
+        float ascent = mDebugTextPaint.ascent();
+        float descent = mDebugTextPaint.descent();
+        float width;
+        int index = mLoadedBitmapIndexQueue.get(0);
+        String text = mCoverReasonMap.get(index);
+        String[] textList;
+
+        if (text != null) {
+            if (text.contains("\n")) {
+                textList = (index + ": " + text).split("\\n");
+            } else {
+                textList = new String[]{index + ": " + text};
+            }
+            for (int i = 0; i < textList.length; i++) {
+                width = mDebugTextPaint.measureText(textList[i]);
+                mCoverCanvas.drawText(textList[i], (localScreenWidth - width) / 2, localScreenHeight / 2 + 200 + i * (descent - ascent) - ascent, mDebugTextPaint);
+            }
+        }
+
+        mCoverBitmapPaint.setAlpha(alpha);
+        //draw cover image
+        canvas.drawBitmap(mCoverBitmap, 0, 0, mCoverBitmapPaint);
     }
 
     private void drawDebugInfo(Canvas canvas) {
@@ -418,6 +542,8 @@ public class FileBitmapDrawer {
                 "하위 디렉터리 포함: ",
                 "이미지 지속시간: ",
                 "이미지 페이드 지속시간: ",
+                "전체 인덱스: ",
+                "메인 인덱스: ",
                 "이미지 파일 로드중: ",
                 "이미지 파일 정렬중: ",
                 "정렬중인 이미지 인덱스: ",
@@ -435,6 +561,8 @@ public class FileBitmapDrawer {
                 pref_includeSubDirectory + "",
                 pref_imageDuration + "ms",
                 pref_imageFadeDuration + "ms",
+                mFullIndex + "",
+                mMainIndex + "",
                 mImageFilesLoading + "",
                 mImageFilesSorting + "",
                 mSortingImage == INDEX_NULL ? "정렬 완료" : mSortingImage + "",
@@ -442,34 +570,23 @@ public class FileBitmapDrawer {
                 mLoadedBitmapQueue.size() + "",
                 mResizedBitmapQueue.size() + "",
                 +mFps + "/" + pref_fpsLimit + "(" + mFpsAvg + ")",
-                (mLoadedBitmapIndexQueue.get(0) == INDEX_NULL ? "INDEX_NULL" : String.valueOf(mLoadedBitmapIndexQueue.get(0))),
-                (mLoadedBitmapIndexQueue.get(1) == INDEX_NULL ? "INDEX_NULL" : String.valueOf(mLoadedBitmapIndexQueue.get(1))),
-                String.format("%.2f", mDurationPercentage)
+                ((mLoadedBitmapIndexQueue.size() == 0 || mLoadedBitmapIndexQueue.get(0) == INDEX_NULL) ? "INDEX_NULL" : String.valueOf(mLoadedBitmapIndexQueue.get(0))),
+                ((mLoadedBitmapIndexQueue.size() <= 1 || mLoadedBitmapIndexQueue.get(1) == INDEX_NULL) ? "INDEX_NULL" : String.valueOf(mLoadedBitmapIndexQueue.get(1))),
+                String.format("%.2f", mFadeDurationPercentage)
         };
-        float ascent = mTextPaint.ascent();
-        float descent = mTextPaint.descent();
+        float ascent = mDebugTextPaint.ascent();
+        float descent = mDebugTextPaint.descent();
         float width1, width2;
         for (int i = 0; i < debugDetailsList.length; i++) {
-            width1 = mTextPaint.measureText(debugDetailsList[i]);
-            width2 = mTextPaint.measureText(debugDetailsValueList[i]);
-            canvas.drawRect(0, 100 + i * (descent - ascent), width1 + width2, 100 + (i + 1) * (descent - ascent), mForegroundPaint);
-            canvas.drawText(debugDetailsList[i], 0, 100 + i * (descent - ascent) - ascent, mTextPaint);
-            canvas.drawText(debugDetailsValueList[i], width1, 100 + i * (descent - ascent) - ascent, mTextPaint);
+            width1 = mDebugTextPaint.measureText(debugDetailsList[i]);
+            width2 = mDebugTextPaint.measureText(debugDetailsValueList[i]);
+            canvas.drawRect(0, 100 + i * (descent - ascent), width1 + width2, 100 + (i + 1) * (descent - ascent), mDebugBackgroundPaint);
+            canvas.drawText(debugDetailsList[i], 0, 100 + i * (descent - ascent) - ascent, mDebugTextPaint);
+            canvas.drawText(debugDetailsValueList[i], width1, 100 + i * (descent - ascent) - ascent, mDebugTextPaint);
         }
     }
 
     private int getCurrentIndex(long currentTime) {
-        if (mImageFiles.size() == 0) {
-            return INDEX_NULL;
-        }
-
-        /*if (mImageFilesLoading || mImageFilesSorting) {
-            index = (int) ((currentTime / pref_imageDuration) % MAX_LOADED_BITMAP);
-            Log.e("index", index + "");
-        } else {
-            index = (int) ((currentTime / pref_imageDuration) % mImageFiles.size());
-        }*/
-
         return (int) (currentTime / pref_imageDuration);
     }
 
@@ -490,43 +607,44 @@ public class FileBitmapDrawer {
     }
 
     private void computeDurationPercent(long currentTime) {
+        mDurationPercentage = 1f * (currentTime % pref_imageDuration) / pref_imageDuration;
+
         // (진행된 시간 + fadeDuration - duration) / fadeDuration
-        float value = 1f * ((currentTime % pref_imageDuration) + pref_imageFadeDuration - pref_imageDuration) / pref_imageFadeDuration;
-        if (value > 0f) {
-            mDurationPercentage = value;
+        float fadeValue = 1f * ((currentTime % pref_imageDuration) + pref_imageFadeDuration - pref_imageDuration) / pref_imageFadeDuration;
+        if (fadeValue > 0f) {
+            mFadeDurationPercentage = fadeValue;
         } else {
-            mDurationPercentage = 0;
+            mFadeDurationPercentage = 0;
         }
     }
 
     private void updateTick() {
         long currentTime;
-        if (mImageFilesLoading && mImageFiles.size() < mMainIndex + MAX_LOADED_BITMAP) {
+        if (false/*mImageFilesLoading && mImageFiles.size() < mMainIndex + MAX_LOADED_BITMAP*/) {
             currentTime = SystemClock.uptimeMillis();
         } else {
             currentTime = mEngine.getStartedTime() + SystemClock.uptimeMillis();
         }
 
-        int currentIndex = getCurrentIndex(currentTime);
+        int currentIndex = getCurrentIndex(currentTime);/*
         if (mImageFiles.size() == 0) {
             currentIndex = INDEX_NULL;
-        }
+        }*/
 
         computeFps(currentTime);
 
         computeDurationPercent(currentTime);
 
-        if (mFullIndex != currentIndex) {
+        if (mFullIndex != currentIndex/* || mMainIndex == INDEX_NULL*/) {
+            mFullIndex = currentIndex;
 
             if (mImageFiles.size() == 0) {
                 mMainIndex = INDEX_NULL;
-                mFullIndex = INDEX_NULL;
             } else {
-                mMainIndex = currentIndex % mImageFiles.size();
-                mFullIndex = currentIndex;
+                mMainIndex = mFullIndex % mImageFiles.size();
             }
 
-            if (mLoadedBitmapQueue.size() >= MAX_LOADED_BITMAP && mFileInitialized) {
+            if (mLoadedBitmapQueue.size() >= MAX_LOADED_BITMAP && mWallpaperReady) {
                 mLoadedBitmapQueue.pop();
                 mResizedBitmapQueue.pop();
                 mLoadedBitmapIndexQueue.pop();
