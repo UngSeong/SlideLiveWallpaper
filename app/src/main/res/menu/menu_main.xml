@@ -22,4 +22,10 @@
         android:title="이미지 파일 재 탐색"
         app:showAsAction="never"/>
 
+    <item
+        android:id="@+id/menu_log"
+        android:icon="@drawable/ic_logcat"
+        android:title="로그"
+        app:showAsAction="never"/>
+
 </menu>

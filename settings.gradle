@@ -1,2 +1,24 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(new File(rootDir, "github.properties")))
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        jcenter()
+
+        maven {
+            name = "longseongLogLibrary"
+            url = uri("https://maven.pkg.github.com/LongSeong/LongSeongLibraries")
+            credentials {
+                username = githubProperties['github_username'] ?: System.getenv("github_username")
+                password = githubProperties['github_access_token'] ?: System.getenv("github_access_token")
+            }
+        }
+    }
+}
+
 include ':app'
 rootProject.name='Slidelive wallpaper'

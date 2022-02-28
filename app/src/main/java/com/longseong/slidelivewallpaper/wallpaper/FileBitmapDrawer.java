@@ -28,6 +28,7 @@ import android.util.Log;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.documentfile.provider.DocumentFile;
 
+import com.longseong.logcenter.log.LogCenter;
 import com.longseong.slidelivewallpaper.R;
 import com.longseong.slidelivewallpaper.preference.PreferenceData;
 
@@ -115,6 +116,10 @@ public class FileBitmapDrawer {
     private Canvas mCoverCanvas;
     private Bitmap mCoverBitmap;
     private final LinkedHashMap<Integer, String> mCoverReasonMap = new LinkedHashMap<>();
+
+    //debug properties (디버그용 프로퍼티)
+    private boolean resizingBitmap;
+    private boolean loadingBitmap;
 
 
     public FileBitmapDrawer(LiveWallpaperService liveWallpaperService) {
@@ -281,6 +286,8 @@ public class FileBitmapDrawer {
         mDebugTextPaint.setColor(0xFFFFFFFF);
 
         mDebugBackgroundPaint.setColor(0x7F000000);
+
+        mCoverAlpha = mCoverBitmapPaint.getAlpha();
     }
 
     //임시 기본 비트맵
@@ -297,6 +304,11 @@ public class FileBitmapDrawer {
     private void loadBitmapIndex(int index) {
         ContentResolver contentResolver = mContext.getContentResolver();
         Bitmap bitmap;
+
+        {
+            //debug properties
+            loadingBitmap = true;
+        }
 
         try {
             if (index == INDEX_NULL) {
@@ -356,12 +368,22 @@ public class FileBitmapDrawer {
             mLoadedBitmapIndexQueue.add(index);
         }
 
+        {
+            //debug properties
+            loadingBitmap = false;
+        }
+
         if (mFileInitialized) {
             resizeLoadedBitmap(false);
         }
     }
 
     private void resizeLoadedBitmap(boolean configChanged) {
+
+        {
+            //debug properties
+            resizingBitmap = true;
+        }
 
         Bitmap bitmap_1 = null;
         Bitmap bitmap_2 = null;
@@ -418,6 +440,11 @@ public class FileBitmapDrawer {
             }
         }
 
+        {
+            //debug properties
+            loadingBitmap = false;
+        }
+
     }
 
     private void resizeLoadedBitmap_VersionQ_orOlder(Bitmap bitmap_1, Bitmap bitmap_2, Bitmap bitmap_3) {
@@ -452,11 +479,11 @@ public class FileBitmapDrawer {
     }
 
     private void drawBitmap(Canvas canvas) {
-        if (mCoverBitmapPaint.getAlpha() < 255) {
+        if (mCoverAlpha < 255) {
             drawImage(canvas);
         }
 
-        if (!mWallpaperReady || mCoverBitmapPaint.getAlpha() > 0) {
+        if (!mWallpaperReady || mCoverAlpha > 0) {
             drawCover(canvas);
         }
 
@@ -484,13 +511,12 @@ public class FileBitmapDrawer {
     private void drawCover(Canvas canvas) {
 
         //커버의 알파값 설정
-        int alpha = mCoverBitmapPaint.getAlpha();
         if (mWallpaperReady) {
-            alpha -= Math.round(1f * 0xFF * mTakenTime / pref_imageFadeDuration);
-            if (alpha < 0) alpha = 0;
+            mCoverAlpha -= 1f * 0xFF * mTakenTime / pref_imageFadeDuration;
+            if (mCoverAlpha < 0) mCoverAlpha = 0;
         } else {
-            alpha += Math.round(1f * 0xFF * mTakenTime / pref_imageFadeDuration);
-            if (alpha > 255) alpha = 255;
+            mCoverAlpha += 1f * 0xFF * mTakenTime / pref_imageFadeDuration ;
+            if (mCoverAlpha > 255) mCoverAlpha = 255;
         }
 
         //커버의 로딩 아이콘 설정
@@ -571,7 +597,7 @@ public class FileBitmapDrawer {
             }
         }
 
-        mCoverBitmapPaint.setAlpha(alpha);
+        mCoverBitmapPaint.setAlpha((int) mCoverAlpha);
         //draw cover image
         canvas.drawBitmap(mCoverBitmap, 0, 0, mCoverBitmapPaint);
     }
@@ -685,7 +711,7 @@ public class FileBitmapDrawer {
                 mMainIndex = mFullIndex % mImageFiles.size();
             }
 
-            if (mResizedBitmapQueue.size() >= MAX_LOADED_BITMAP/* && mWallpaperReady*/) {
+            if (mResizedBitmapQueue.size() >= MAX_LOADED_BITMAP) {
                 mLoadedBitmapQueue.pop();
                 mResizedBitmapQueue.pop();
                 mLoadedBitmapIndexQueue.pop();
@@ -702,6 +728,15 @@ public class FileBitmapDrawer {
                 } catch (IndexOutOfBoundsException e) {
                     //do nothing
                 }
+            } else {
+                LogCenter.postLog(mContext, "리사이즈 비트맵의 사이즈가 최대 개수가 아닙니다\n" +
+                        "로드된 파일의 개수 : " + mImageFiles.size() + "\n" +
+                        "로드된 비트맵의 개수 : " + mLoadedBitmapQueue.size() + "\n" +
+                        "리사이즈된 비트맵의 개수 : " + mResizedBitmapQueue.size() + "\n" +
+                        "비트맵이 로딩중이었나 : " + loadingBitmap + "\n" +
+                        "비트맵이 리사이즈중이었나 : " + resizingBitmap + "\n" +
+                        "엔진이 시작된지 얼마나 지났나: " + (System.currentTimeMillis() - mEngine.getStartedTime())
+                );
             }
             loadNextBitmap();
         }

@@ -131,7 +131,7 @@ public class PreferenceListAdapter extends RecyclerView.Adapter<PrefHolder> {
                 break;
             }
             case PREF_ID_IMAGE_FADE_DURATION: {
-                input.setError("2000 ~ 20000 (ms)");
+                input.setError("1000 ~ 10000 (ms)");
                 input.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_NORMAL);
                 input.getEditText().setOnFocusChangeListener((v, hasFocus) -> {
                     EditText editText = ((EditText) v);
@@ -142,8 +142,8 @@ public class PreferenceListAdapter extends RecyclerView.Adapter<PrefHolder> {
                         if (valueString.equals("")) {
                             valueString = PreferenceData.getDefaultData(preferenceId);
                         }
-                        int min = 2000;
-                        int max = 20000;
+                        int min = 1000;
+                        int max = 10000;
                         int value = Integer.parseInt(valueString);
                         if (value < min) {
                             valueString = String.valueOf(min);

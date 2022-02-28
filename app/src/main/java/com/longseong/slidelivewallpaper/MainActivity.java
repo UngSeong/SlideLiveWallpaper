@@ -19,15 +19,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.longseong.slidelivewallpaper.R;
+import com.longseong.slidelivewallpaper.log.LogActivity;
 import com.longseong.slidelivewallpaper.preference.PreferenceListAdapter;
 import com.longseong.slidelivewallpaper.preference.PreferenceService;
 import com.longseong.slidelivewallpaper.wallpaper.LiveWallpaperService;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final int ID_MENU_DEBUG = R.id.menu_debug;
-    private static final int ID_MENU_INCLUDE_SUB_DIRECTORY = R.id.menu_include_sub_directory;
-    private static final int ID_MENU_REFRESH_FILES = R.id.menu_refresh_files;
 
     private ActivityResultLauncher<Uri> mDocumentLauncher;
 
@@ -70,20 +67,14 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < menu.size(); i++) {
             item = menu.getItem(i);
 
-            switch (item.getItemId()) {
-                case ID_MENU_DEBUG: {
-                    item.setChecked(App.mPreferenceData.isDebug());
-                    break;
-                }
-                case ID_MENU_INCLUDE_SUB_DIRECTORY: {
-                    item.setChecked(App.mPreferenceData.isIncludeSubDirectory());
-                    break;
-                }
-                case ID_MENU_REFRESH_FILES: {
-                    if (LiveWallpaperService.getWallpaperEngineList().size() == 0) {
-                        menu.removeItem(ID_MENU_REFRESH_FILES);
-                    }
-                    break;
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_debug) {
+                item.setChecked(App.mPreferenceData.isDebug());
+            } else if (itemId == R.id.menu_include_sub_directory) {
+                item.setChecked(App.mPreferenceData.isIncludeSubDirectory());
+            } else if (itemId == R.id.menu_refresh_files) {
+                if (LiveWallpaperService.getWallpaperEngineList().size() == 0) {
+                    menu.removeItem(R.id.menu_refresh_files);
                 }
             }
         }
@@ -94,24 +85,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        switch (item.getItemId()) {
-            case ID_MENU_DEBUG: {
-                boolean debug = !item.isChecked();
-                item.setChecked(debug);
-                App.mPreferenceData.setDebug(debug);
-                break;
-            }
-            case ID_MENU_INCLUDE_SUB_DIRECTORY: {
-                boolean includeSubDirectory = !item.isChecked();
-                item.setChecked(includeSubDirectory);
-                App.mPreferenceData.setIncludeSubDirectory(includeSubDirectory);
-                break;
-            }
-            case ID_MENU_REFRESH_FILES: {
-                Toast.makeText(this, "이미지 파일을 다시 탐색 합니다.", Toast.LENGTH_SHORT).show();
-                LiveWallpaperService.notifyPreferenceChanged(true);
-                break;
-            }
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_debug) {
+            boolean debug = !item.isChecked();
+            item.setChecked(debug);
+            App.mPreferenceData.setDebug(debug);
+        } else if (itemId == R.id.menu_include_sub_directory) {
+            boolean includeSubDirectory = !item.isChecked();
+            item.setChecked(includeSubDirectory);
+            App.mPreferenceData.setIncludeSubDirectory(includeSubDirectory);
+        } else if (itemId == R.id.menu_refresh_files) {
+            Toast.makeText(this, "이미지 파일을 다시 탐색 합니다.", Toast.LENGTH_SHORT).show();
+            LiveWallpaperService.notifyPreferenceChanged(true);
+        } else if (itemId == R.id.menu_log) {
+            startActivity(new Intent(this, LogActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
