@@ -105,7 +105,6 @@ public class BitmapDrawer {
                 loadedBitmapBound[(timeIndex + i) % loadedBitmap.length][1] = -(loadedBitmap[(timeIndex + i) % loadedBitmap.length].getHeight() - exporter.getHeight()) / 2;
             }
         }
-        //Toast.makeText(context, "bitmap initialized", Toast.LENGTH_SHORT).show();
     }
     
     public void loadBitmap(){

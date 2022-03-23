@@ -4,7 +4,7 @@ android {
     compileSdkVersion 31
     defaultConfig {
         applicationId "com.longseong.slidelivewallpaper"
-        minSdkVersion 23
+        minSdkVersion 26
         targetSdkVersion 31
         versionCode 1
         versionName "1.0"
@@ -33,4 +33,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation 'com.longseong.logcenter:logcenter:1.0.1'
+//    implementation 'com.longseong.preference:preference:1.0.0'
+    implementation files("libs/Preference-release.aar")
 }

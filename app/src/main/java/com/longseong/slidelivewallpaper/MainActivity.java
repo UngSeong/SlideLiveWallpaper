@@ -4,148 +4,113 @@ import android.app.WallpaperManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.widget.NestedScrollView;
+import androidx.documentfile.provider.DocumentFile;
 
-import com.longseong.slidelivewallpaper.R;
+import com.longseong.preference.Preference;
+import com.longseong.preference.PreferenceListWrapper;
+import com.longseong.preference.PreferenceManager;
 import com.longseong.slidelivewallpaper.log.LogActivity;
-import com.longseong.slidelivewallpaper.preference.PreferenceListAdapter;
-import com.longseong.slidelivewallpaper.preference.PreferenceService;
 import com.longseong.slidelivewallpaper.wallpaper.LiveWallpaperService;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ActivityResultLauncher<Uri> mDocumentLauncher;
-
-    private RecyclerView preferenceList;
-    private Button setWallpaperButton;
-
-    private PreferenceListAdapter preferenceListAdapter;
-
-    private ResultCallback mResultCallback;
-
-    public interface ResultCallback {
-        void onResult(Uri result);
-    }
+    private PreferenceManager mPreferenceManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initLauncher();
-        initView();
-        initService();
+        newPreference();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    private void newPreference() {
+        mPreferenceManager = PreferenceManager.getInstance(this);
 
-        App.mPreferenceData.saveData(this);
-    }
+        mPreferenceManager.setPreferenceCreatedListener((manager, preference, activity) -> {
+            int id = preference.getId();
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+            if (id == R.id.preferenceData_changeWallpaper) {
+                preference.getEvent().setRunnable(new Handler(), () -> {
+                    Intent intent = new Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER);
+                    activity.startActivity(intent);
+                });
+            } else if (id == R.id.preferenceData_directoryUri) {
+                Preference.Intent intentData = preference.getIntent();
+                intentData.setDefaultUri(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)));
+                intentData.setLauncher(activity.registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), result -> {
+                    //도큐먼트를 선택하지 않으면 result == null
+                    if (result != null) {
+                        activity.getContentResolver().takePersistableUriPermission(result, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        MenuInflater inflater = new MenuInflater(this);
-        inflater.inflate(R.menu.menu_main, menu);
+                        String normalizedPath;
+                        String path = result.getPath();
+                        String[] splitPath = path.split(":");
+                        String primary;
+                        String lastDirectory = "";
 
-        MenuItem item;
+                        try {
+                            if (path.equals("/tree/downloads") || splitPath[0].endsWith("msd")) {
+                                primary = "다운로드";
+                                if (splitPath.length > 1) {
+                                    lastDirectory = " - " + DocumentFile.fromTreeUri(activity, result).getName();
+                                } else {
+                                    lastDirectory = "";
+                                }
+                            } else if (splitPath[0].endsWith("primary")) {
+                                primary = Environment.getExternalStoragePublicDirectory("").getPath();
+                                if (splitPath.length > 1) {
+                                    lastDirectory = "/" + splitPath[1];
+                                }
+                            } else {
+                                primary = splitPath[0].replace("tree", "storage");
+                                if (splitPath.length > 1) {
+                                    lastDirectory = "/" + splitPath[1];
+                                }
+                            }
+                            normalizedPath = primary + lastDirectory;
+                        } catch (Exception e) {
+                            normalizedPath = result.toString();
+                        }
 
-        for (int i = 0; i < menu.size(); i++) {
-            item = menu.getItem(i);
+                        String original = preference.getContentValueRaw();
+                        if (!original.equals(result.toString())) {
+                            preference.setContentValueRaw(result.toString());
+                            manager.savePreferenceContentValueRaw(preference);
 
-            int itemId = item.getItemId();
-            if (itemId == R.id.menu_debug) {
-                item.setChecked(App.mPreferenceData.isDebug());
-            } else if (itemId == R.id.menu_include_sub_directory) {
-                item.setChecked(App.mPreferenceData.isIncludeSubDirectory());
-            } else if (itemId == R.id.menu_refresh_files) {
-                if (LiveWallpaperService.getWallpaperEngineList().size() == 0) {
-                    menu.removeItem(R.id.menu_refresh_files);
-                }
-            }
-        }
+                            preference.setContentValue(normalizedPath);
+                            manager.savePreferenceContentValue(preference);
+                            ((PreferenceListWrapper.PreferenceViewHolder) manager.getPreferenceListWrapper().getHolderAt(0, 4)).update(preference);
 
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
-        int itemId = item.getItemId();
-        if (itemId == R.id.menu_debug) {
-            boolean debug = !item.isChecked();
-            item.setChecked(debug);
-            App.mPreferenceData.setDebug(debug);
-        } else if (itemId == R.id.menu_include_sub_directory) {
-            boolean includeSubDirectory = !item.isChecked();
-            item.setChecked(includeSubDirectory);
-            App.mPreferenceData.setIncludeSubDirectory(includeSubDirectory);
-        } else if (itemId == R.id.menu_refresh_files) {
-            Toast.makeText(this, "이미지 파일을 다시 탐색 합니다.", Toast.LENGTH_SHORT).show();
-            LiveWallpaperService.notifyPreferenceChanged(true);
-        } else if (itemId == R.id.menu_log) {
-            startActivity(new Intent(this, LogActivity.class));
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void initLauncher() {
-        mDocumentLauncher = registerForActivityResult(
-                new ActivityResultContracts.OpenDocumentTree(),
-                result -> {
-                    if (mResultCallback != null) {
-                        mResultCallback.onResult(result);
+                            LiveWallpaperService.notifyPreferenceChanged(true);
+                        }
                     }
-                }
-        );
-    }
-
-    private void initView() {
-        initWallpaperButton();
-        initPreferenceList();
-    }
-
-    private void initService() {
-        Intent preferenceServiceIntent = new Intent(this, PreferenceService.class);
-        startService(preferenceServiceIntent);
-    }
-
-    private void initWallpaperButton() {
-        setWallpaperButton = findViewById(R.id.set_background_button);
-        setWallpaperButton.setOnClickListener(v -> {
-            Intent intent = new Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER);
-            startActivity(intent);
+                }));
+            } else if (id == R.id.preferenceData_reloadImage) {
+                preference.getEvent().setRunnable(new Handler(), () -> {
+                    LiveWallpaperService.notifyPreferenceChanged(true);
+                    App.makeToast(activity, "이미지를 다시 불러옵니다.");
+                });
+            } else if (id == R.id.preferenceData_log) {
+                preference.getEvent().setRunnable(new Handler(), () -> {
+                    startActivity(new Intent(this, LogActivity.class));
+                });
+            }
         });
-    }
 
-    private void initPreferenceList() {
-        preferenceList = findViewById(R.id.preference_list_view);
+        NestedScrollView preferenceView = findViewById(R.id.preference_layout);
 
-        preferenceListAdapter = new PreferenceListAdapter(this);
-        preferenceList.setLayoutManager(new LinearLayoutManager(this));
-        preferenceList.setAdapter(preferenceListAdapter);
-    }
-
-    public ActivityResultLauncher<Uri> getDocumentLauncher() {
-        return mDocumentLauncher;
-    }
-
-    public void setResultCallback(ResultCallback resultCallback) {
-        this.mResultCallback = resultCallback;
+        mPreferenceManager.registerPreferenceLayout(this, preferenceView);
     }
 }

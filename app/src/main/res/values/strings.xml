@@ -1,5 +1,16 @@
 <resources>
-    <string name="app_name">Slidelive wallpaper</string>
+    <string name="app_name">슬라이드 배경화면</string>
+
+    <!-- 설정값 엑세스네임 -->
+    <string name="preference_accessName_changeWallpaper">preference.access.change_wallpaper</string>
+    <string name="preference_accessName_imageDuration">preference.access.image_duration</string>
+    <string name="preference_accessName_imageFadeDuration">preference.access.image_fade_duration</string>
+    <string name="preference_accessName_frameLimit">preference.access.frame_limit</string>
+    <string name="preference_accessName_directoryUri">preference.access.directory_uri</string>
+    <string name="preference_accessName_includeSubDirectory">preference.access.include_sub_directory</string>
+    <string name="preference_accessName_reloadImage">preference.access.reload_image</string>
+    <string name="preference_accessName_debug">preference.access.debug</string>
+    <string name="preference_accessName_log">preference.access.log</string>
 
     <!--배경화면 설정 버튼 텍스트-->
     <string name="set_background_button">배경화면 설정하기</string>
@@ -8,22 +19,51 @@
     <string name="preference_shared_positive">저장</string>
     <string name="preference_shared_negative">취소</string>
 
-    <!--preference 1 텍스트-->
-    <string name="preference_1_title">이미지 지속시간</string>
-    <string name="preference_1_description">이미지가 보여지는 지속시간입니다.</string>
+    <!--preference changeWallpaper 텍스트-->
+    <string name="preference_changeWallpaper_title">배경화면 선택하기</string>
+    <string name="preference_changeWallpaper_description">라이브 배경화면 선택기를 엽니다.</string>
+    <string name="preference_changeWallpaper_detailedDescription">라이브 배경화면 선택기를 엽니다.</string>
 
-    <!--preference 2 텍스트-->
-    <string name="preference_2_title">페이드 효과 지속시간</string>
-    <string name="preference_2_description">이미지가 전환되는 페이드 효과의 지속시간입니다.</string>
+    <!--preference imageDuration 텍스트-->
+    <string name="preference_imageDuration_title">이미지 지속시간</string>
+    <string name="preference_imageDuration_description">이미지가 보여지는 지속시간입니다.</string>
+    <string name="preference_imageDuration_detailedDescription">현재 인덱스에 해당하는 이미지가 보여지는 총 시간입니다.</string>
 
-    <!--preference 3 텍스트-->
-    <string name="preference_3_title">이미지 폴더 주소</string>
-    <string name="preference_3_description">슬라이드 할 이미지가 들어있는 폴더 주소입니다.</string>
-    <string name="preference_3_additional">Document Tree에서 선택하기</string>
+    <!--preference imageFadeDuration 텍스트-->
+    <string name="preference_imageFadeDuration_title">페이드 효과 지속시간</string>
+    <string name="preference_imageFadeDuration_description">이미지가 전환되는 페이드 효과의 지속시간입니다.</string>
+    <string name="preference_imageFadeDuration_detailedDescription">현재 인덱스에 해당하는 이미지가 다음 인덱스에 해당하는 이미지로 바뀌는데 걸리는 시간입니다.</string>
 
-    <!--preference 4 텍스트-->
-    <string name="preference_4_title">최대 초당 프레임 제한</string>
-    <string name="preference_4_description">1초당 최대 화면 업데이트 빈도입니다.</string>
+    <!--preference frameLimit 텍스트-->
+    <string name="preference_frameLimit_title">최대 초당 프레임 제한</string>
+    <string name="preference_frameLimit_description">1초당 최대 화면 업데이트 빈도입니다.</string>
+    <string name="preference_frameLimit_detailedDescription">1초당 화면이 업데이트 할 수 있는 최대 빈도입니다. (기본값 30)</string>
+
+    <!--preference directoryUri 텍스트-->
+    <string name="preference_directoryUri_title">이미지 폴더 주소</string>
+    <string name="preference_directoryUri_description">슬라이드 할 이미지가 들어있는 폴더 주소입니다.</string>
+    <string name="preference_directoryUri_detailedDescription">슬라이더에 보여질 이미지 파일이 있는 디렉터리입니다. png, jpg 파일만 가능합니다.</string>
+    <string name="preference_directoryUri_additional">폴더 선택하기</string>
+
+    <!--preference includeSubDirectory 텍스트-->
+    <string name="preference_includeSubDirectory_title">하위 폴더 이미지 포함</string>
+    <string name="preference_includeSubDirectory_description">이미지 폴더 주소의 하위 폴더를 포함합니다.</string>
+    <string name="preference_includeSubDirectory_detailedDescription">이미지 파일 디렉터리의 하위 디렉터리 포함 여부입니다.</string>
+
+    <!--preference reloadImage 텍스트-->
+    <string name="preference_reloadImage_title">이미지 리로드</string>
+    <string name="preference_reloadImage_description">이미지를 다시 로드 합니다.</string>
+    <string name="preference_reloadImage_detailedDescription">이미지를 다시 불러옵니다.</string>
+
+    <!--preference debug 텍스트-->
+    <string name="preference_debug_title">디버그</string>
+    <string name="preference_debug_description">디버그 정보를 배경화면에 표시합니다.</string>
+    <string name="preference_debug_detailedDescription">디버그 정보를 배경화면에 표시합니다.</string>
+
+    <!--preference log 텍스트-->
+    <string name="preference_log_title">로그</string>
+    <string name="preference_log_description">로그 액티비티를 실행합니다.</string>
+    <string name="preference_log_detailedDescription">로그 액티비티를 실행합니다.</string>
 
     <!--외부 저장소 읽기 권환 텍스트-->
     <string name="permission_read_external_storage_title">외부 저장소 읽기 권한 필요</string>

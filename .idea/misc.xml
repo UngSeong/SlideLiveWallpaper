@@ -3,6 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/KSU/AndroidProjects/SlideLiveWallpaper/app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.2665" />
+        <entry key="..\:/KSU/AndroidProjects/SlideLiveWallpaper/app/src/main/res/layout/activity_main.xml" value="0.1331521739130435" />
+        <entry key="..\:/KSU/AndroidProjects/SlideLiveWallpaper/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2665" />
+        <entry key="..\:/KSU/AndroidProjects/SlideLiveWallpaper/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.236" />
         <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/drawable/ic_image_source.xml" value="0.264" />
         <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.23287037037037037" />
         <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/activity_main.xml" value="0.264" />
@@ -20,10 +24,8 @@
         <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/switch_item.xml" value="0.17824074074074073" />
         <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/layout/toolbar.xml" value="0.22546296296296298" />
         <entry key="..\:/KSU/AndroidProjects/Slidelivewallpaper/app/src/main/res/menu/menu_main.xml" value="0.4" />
-        <entry key="..\:/KSU/AndroidStudio/SlideLiveWallpaper/app/src/main/res/drawable/ic_logcat.xml" value="0.154" />
-        <entry key="..\:/KSU/AndroidStudio/SlideLiveWallpaper/app/src/main/res/layout/activity_main.xml" value="0.297554347826087" />
-        <entry key="..\:/KSU/AndroidStudio/SlideLiveWallpaper/app/src/main/res/menu/menu_main.xml" value="0.21354166666666666" />
         <entry key="..\:/KSU/AndroidStudio/Slidelivewallpaper/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/Users/gkaks/.gradle/caches/transforms-3/f2a1c3e59d5a64482b84f5fcc3c5cf36/transformed/jetified-logcenter-1.0.1/res/drawable-anydpi-v24/ic_launcher_foreground.xml" value="0.2665" />
       </map>
     </option>
   </component>

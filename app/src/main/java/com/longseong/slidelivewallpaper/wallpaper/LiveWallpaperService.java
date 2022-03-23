@@ -19,10 +19,10 @@ public class LiveWallpaperService extends WallpaperService {
 
     private WallpaperEngine mWallpaperEngine;
 
-    public static void notifyPreferenceChanged(boolean filesChanged) {
+    public static void notifyPreferenceChanged(boolean reloadFile) {
         if (mWallpaperEngineList.size() > 0) {
             for (WallpaperEngine wallpaperEngine : mWallpaperEngineList) {
-                wallpaperEngine.mFileBitmapDrawer.notifyPreferenceChanged(filesChanged);
+                wallpaperEngine.mFileBitmapDrawer.notifyPreferenceChanged(reloadFile);
             }
         }
     }
