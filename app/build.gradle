@@ -32,7 +32,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
-    implementation 'com.longseong.logcenter:logcenter:1.0.1'
-//    implementation 'com.longseong.preference:preference:1.0.0'
-    implementation files("libs/Preference-release.aar")
+    implementation 'com.longseong.logcenter:logcenter:1.0.2'
+    implementation 'com.longseong.preference:preference:1.0.1'
 }

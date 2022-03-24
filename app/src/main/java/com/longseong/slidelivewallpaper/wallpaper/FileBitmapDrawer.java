@@ -22,7 +22,7 @@ import android.provider.MediaStore;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.documentfile.provider.DocumentFile;
 
-import com.longseong.logcenter.log.LogCenter;
+import com.longseong.logcenter.LogCenter;
 import com.longseong.preference.PreferenceManager;
 import com.longseong.slidelivewallpaper.R;
 
@@ -174,13 +174,18 @@ public class FileBitmapDrawer {
         mPreferenceManager = PreferenceManager.getInstance(mContext);
 
         if (mPreferenceManager != null) {
-            pref_imageDuration = (long) (Float.parseFloat(mPreferenceManager.getPreferenceById(R.id.preferenceData_imageDuration).getContentValue()) * 1000);
-            pref_imageFadeDuration = (long) (Float.parseFloat(mPreferenceManager.getPreferenceById(R.id.preferenceData_imageFadeDuration).getContentValue()) * 1000);
-            pref_directoryUri = Uri.parse(mPreferenceManager.getPreferenceById(R.id.preferenceData_directoryUri).getContentValueRaw());
-            pref_fpsLimit = Integer.parseInt(mPreferenceManager.getPreferenceById(R.id.preferenceData_frameLimit).getContentValue());
-            pref_debug = mPreferenceManager.getPreferenceById(R.id.preferenceData_debug).getSwitch().isChecked();
-            pref_includeSubDirectory = mPreferenceManager.getPreferenceById(R.id.preferenceData_includeSubDirectory).getSwitch().isChecked();
+            try {
+                pref_imageDuration = (long) (Float.parseFloat(mPreferenceManager.getPreferenceById(R.id.preferenceData_imageDuration).getContentValue()) * 1000);
+                pref_imageFadeDuration = (long) (Float.parseFloat(mPreferenceManager.getPreferenceById(R.id.preferenceData_imageFadeDuration).getContentValue()) * 1000);
+                pref_directoryUri = Uri.parse(mPreferenceManager.getPreferenceById(R.id.preferenceData_directoryUri).getContentValueRaw());
+                pref_fpsLimit = mPreferenceManager.getPreferenceById(R.id.preferenceData_frameLimit).getSeekBar().getProgressValue();
+                pref_debug = mPreferenceManager.getPreferenceById(R.id.preferenceData_debug).getSwitch().isChecked();
+                pref_includeSubDirectory = mPreferenceManager.getPreferenceById(R.id.preferenceData_includeSubDirectory).getSwitch().isChecked();
+            } catch (Exception e) {
+                LogCenter.postLog(mContext, e);
+            }
         }
+
     }
 
     private void initFiles() {
@@ -191,7 +196,7 @@ public class FileBitmapDrawer {
             mBitmapLoadingThread.interrupt();
         }
         mWallpaperReady = mFileInitialized = false;
-        if (pref_directoryUri != null) {
+        if (pref_directoryUri != null && !pref_directoryUri.toString().equals("")) {
             mRootDocument = DocumentFile.fromTreeUri(mContext, pref_directoryUri);
         }
         mImageFiles = new LinkedList<>();

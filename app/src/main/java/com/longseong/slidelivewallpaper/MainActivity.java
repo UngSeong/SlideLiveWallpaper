@@ -17,10 +17,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
 import androidx.documentfile.provider.DocumentFile;
 
+import com.longseong.logcenter.LogActivity;
+import com.longseong.logcenter.LogCenter;
 import com.longseong.preference.Preference;
 import com.longseong.preference.PreferenceListWrapper;
 import com.longseong.preference.PreferenceManager;
-import com.longseong.slidelivewallpaper.log.LogActivity;
 import com.longseong.slidelivewallpaper.wallpaper.LiveWallpaperService;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,7 +39,9 @@ public class MainActivity extends AppCompatActivity {
     private void newPreference() {
         mPreferenceManager = PreferenceManager.getInstance(this);
 
+
         mPreferenceManager.setPreferenceCreatedListener((manager, preference, activity) -> {
+            LogCenter.postLog(this, "pref");
             int id = preference.getId();
 
             if (id == R.id.preferenceData_changeWallpaper) {

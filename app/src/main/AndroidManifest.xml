@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".log.LogActivity" />
+        <activity android:name="com.longseong.logcenter.LogActivity" />
         <!--<activity android:name="com.longseong.preference.PreferenceActivity"/>-->
 
         <service
