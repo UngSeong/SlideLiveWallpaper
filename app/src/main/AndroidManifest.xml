@@ -26,13 +26,13 @@
         </activity>
 
         <activity android:name="com.longseong.logcenter.LogActivity" />
-        <!--<activity android:name="com.longseong.preference.PreferenceActivity"/>-->
+        <activity android:name="com.longseong.preference.PreferenceActivity"/>
 
         <service
             android:name=".wallpaper.LiveWallpaperService"
             android:configChanges="screenSize|orientation|screenLayout|navigation"
             android:exported="true"
-            android:label="슬라이드 라이브 월페이퍼"
+            android:label="슬라이드 라이브 배경화면"
             android:permission="android.permission.BIND_WALLPAPER">
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />

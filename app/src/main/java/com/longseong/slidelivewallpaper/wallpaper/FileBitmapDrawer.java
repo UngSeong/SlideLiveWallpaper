@@ -23,6 +23,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.longseong.logcenter.LogCenter;
+import com.longseong.preference.Preference;
 import com.longseong.preference.PreferenceManager;
 import com.longseong.slidelivewallpaper.R;
 
@@ -76,7 +77,6 @@ public class FileBitmapDrawer {
     private LinkedList<DocumentFile> mImageFiles;
 
     //handler
-    private Handler bitmapLoaderHandler;
     private Runnable bitmapLoaderRunnable;
     private Thread mFileLoadingThread;
     private Thread mBitmapLoadingThread;
@@ -166,12 +166,12 @@ public class FileBitmapDrawer {
     }
 
     private void initBitmapLoader() {
-        bitmapLoaderHandler = new Handler();
         bitmapLoaderRunnable = () -> loadBitmapIndex(mMainIndex);
     }
 
     private void initPreferenceData() {
         mPreferenceManager = PreferenceManager.getInstance(mContext);
+        Preference preference;
 
         if (mPreferenceManager != null) {
             try {
@@ -179,7 +179,7 @@ public class FileBitmapDrawer {
                 pref_imageFadeDuration = (long) (Float.parseFloat(mPreferenceManager.getPreferenceById(R.id.preferenceData_imageFadeDuration).getContentValue()) * 1000);
                 pref_directoryUri = Uri.parse(mPreferenceManager.getPreferenceById(R.id.preferenceData_directoryUri).getContentValueRaw());
                 pref_fpsLimit = mPreferenceManager.getPreferenceById(R.id.preferenceData_frameLimit).getSeekBar().getProgressValue();
-                pref_debug = mPreferenceManager.getPreferenceById(R.id.preferenceData_debug).getSwitch().isChecked();
+                pref_debug = (preference = mPreferenceManager.getPreferenceById(R.id.preferenceData_debug)).isEnabled() && preference.getSwitch().isChecked();
                 pref_includeSubDirectory = mPreferenceManager.getPreferenceById(R.id.preferenceData_includeSubDirectory).getSwitch().isChecked();
             } catch (Exception e) {
                 LogCenter.postLog(mContext, e);

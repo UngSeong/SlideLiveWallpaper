@@ -33,5 +33,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation 'com.longseong.logcenter:logcenter:1.0.2'
-    implementation 'com.longseong.preference:preference:1.0.1'
+    implementation 'com.longseong.preference:preference:1.0.2'
 }

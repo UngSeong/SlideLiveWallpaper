@@ -3,83 +3,104 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:preference_accessName="SlideLiveWallpaper_Preference_wallpaper">
 
-    <item
-        android:id="@+id/preferenceData_changeWallpaper"
-        app:preference_accessName="@string/preference_accessName_changeWallpaper"
-        app:preference_description="@string/preference_changeWallpaper_description"
-        app:preference_detailedDescription="@string/preference_changeWallpaper_detailedDescription"
-        app:preference_title="@string/preference_changeWallpaper_title"
-        app:preference_type="eventType" />
+    <group
+        android:id="@+id/preferenceData_wallpaperPreference"
+        app:preference_accessName="@string/preference_accessName_wallpaperPreference"
+        app:preference_description="@string/preference_wallpaperPreference_description"
+        app:preference_detailedDescription="@string/preference_wallpaperPreference_detailedDescription"
+        app:preference_icon="@drawable/ic_image_source"
+        app:preference_title="@string/preference_wallpaperPreference_title">
 
-    <item
-        android:id="@+id/preferenceData_imageDuration"
-        android:inputType="numberDecimal"
-        app:preference_accessName="@string/preference_accessName_imageDuration"
-        app:preference_description="@string/preference_imageDuration_description"
-        app:preference_detailedDescription="@string/preference_imageDuration_detailedDescription"
-        app:preference_title="@string/preference_imageDuration_title"
-        app:preference_type="textType" />
+        <item
+            android:id="@+id/preferenceData_changeWallpaper"
+            app:preference_accessName="@string/preference_accessName_changeWallpaper"
+            app:preference_description="@string/preference_changeWallpaper_description"
+            app:preference_detailedDescription="@string/preference_changeWallpaper_detailedDescription"
+            app:preference_title="@string/preference_changeWallpaper_title"
+            app:preference_type="eventType" />
 
-    <item
-        android:id="@+id/preferenceData_imageFadeDuration"
-        android:inputType="numberDecimal"
-        app:preference_accessName="@string/preference_accessName_imageFadeDuration"
-        app:preference_description="@string/preference_imageFadeDuration_description"
-        app:preference_detailedDescription="@string/preference_imageFadeDuration_detailedDescription"
-        app:preference_title="@string/preference_imageFadeDuration_title"
-        app:preference_type="textType" />
+        <item
+            android:id="@+id/preferenceData_imageDuration"
+            android:inputType="numberDecimal"
+            app:preference_accessName="@string/preference_accessName_imageDuration"
+            app:preference_description="@string/preference_imageDuration_description"
+            app:preference_detailedDescription="@string/preference_imageDuration_detailedDescription"
+            app:preference_title="@string/preference_imageDuration_title"
+            app:preference_type="textType" />
 
-    <item
-        android:id="@+id/preferenceData_frameLimit"
-        app:preference_accessName="@string/preference_accessName_frameLimit"
-        app:preference_description="@string/preference_frameLimit_description"
-        app:preference_detailedDescription="@string/preference_frameLimit_detailedDescription"
-        app:preference_progressDefault="30"
-        app:preference_progressMax="60"
-        app:preference_progressMin="10"
-        app:preference_title="@string/preference_frameLimit_title"
-        app:preference_type="seekBarType" />
+        <item
+            android:id="@+id/preferenceData_imageFadeDuration"
+            android:inputType="numberDecimal"
+            app:preference_accessName="@string/preference_accessName_imageFadeDuration"
+            app:preference_description="@string/preference_imageFadeDuration_description"
+            app:preference_detailedDescription="@string/preference_imageFadeDuration_detailedDescription"
+            app:preference_title="@string/preference_imageFadeDuration_title"
+            app:preference_type="textType" />
 
-    <item
-        android:id="@+id/preferenceData_directoryUri"
-        app:preference_accessName="@string/preference_accessName_directoryUri"
-        app:preference_description="@string/preference_directoryUri_description"
-        app:preference_detailedDescription="@string/preference_directoryUri_detailedDescription"
-        app:preference_title="@string/preference_directoryUri_title"
-        app:preference_type="intentType" />
+        <item
+            android:id="@+id/preferenceData_frameLimit"
+            app:preference_accessName="@string/preference_accessName_frameLimit"
+            app:preference_description="@string/preference_frameLimit_description"
+            app:preference_detailedDescription="@string/preference_frameLimit_detailedDescription"
+            app:preference_progressDefault="30"
+            app:preference_progressMax="60"
+            app:preference_progressMin="10"
+            app:preference_title="@string/preference_frameLimit_title"
+            app:preference_type="seekBarType" />
 
-    <item
-        android:id="@+id/preferenceData_includeSubDirectory"
-        app:preference_accessName="@string/preference_accessName_includeSubDirectory"
-        app:preference_description="@string/preference_includeSubDirectory_description"
-        app:preference_detailedDescription="@string/preference_includeSubDirectory_detailedDescription"
+        <item
+            android:id="@+id/preferenceData_directoryUri"
+            app:preference_accessName="@string/preference_accessName_directoryUri"
+            app:preference_description="@string/preference_directoryUri_description"
+            app:preference_detailedDescription="@string/preference_directoryUri_detailedDescription"
+            app:preference_title="@string/preference_directoryUri_title"
+            app:preference_type="intentType" />
+
+        <item
+            android:id="@+id/preferenceData_includeSubDirectory"
+            app:preference_accessName="@string/preference_accessName_includeSubDirectory"
+            app:preference_description="@string/preference_includeSubDirectory_description"
+            app:preference_detailedDescription="@string/preference_includeSubDirectory_detailedDescription"
+            app:preference_switchUsage="true"
+            app:preference_title="@string/preference_includeSubDirectory_title"
+            app:preference_type="explainType" />
+
+        <item
+            android:id="@+id/preferenceData_reloadImage"
+            app:preference_accessName="@string/preference_accessName_reloadImage"
+            app:preference_description="@string/preference_reloadImage_description"
+            app:preference_detailedDescription="@string/preference_reloadImage_detailedDescription"
+            app:preference_title="@string/preference_reloadImage_title"
+            app:preference_type="eventType" />
+
+    </group>
+
+    <group
+        android:id="@+id/preferenceData_developerPreference"
+        app:preference_accessName="@string/preference_accessName_developerPreference"
+        app:preference_description="@string/preference_developerPreference_description"
+        app:preference_detailedDescription="@string/preference_developerPreference_detailedDescription"
+        app:preference_icon="@drawable/ic_developer_option"
         app:preference_switchUsage="true"
-        app:preference_title="@string/preference_includeSubDirectory_title"
-        app:preference_type="explainType" />
+        app:preference_title="@string/preference_developerPreference_title">
 
-    <item
-        android:id="@+id/preferenceData_reloadImage"
-        app:preference_accessName="@string/preference_accessName_reloadImage"
-        app:preference_description="@string/preference_reloadImage_description"
-        app:preference_detailedDescription="@string/preference_reloadImage_detailedDescription"
-        app:preference_title="@string/preference_reloadImage_title"
-        app:preference_type="eventType" />
+        <item
+            android:id="@+id/preferenceData_debug"
+            app:preference_accessName="@string/preference_accessName_debug"
+            app:preference_description="@string/preference_debug_description"
+            app:preference_detailedDescription="@string/preference_debug_detailedDescription"
+            app:preference_switchUsage="true"
+            app:preference_title="@string/preference_debug_title"
+            app:preference_type="explainType" />
 
-    <item
-        android:id="@+id/preferenceData_debug"
-        app:preference_accessName="@string/preference_accessName_debug"
-        app:preference_description="@string/preference_debug_description"
-        app:preference_detailedDescription="@string/preference_debug_detailedDescription"
-        app:preference_switchUsage="true"
-        app:preference_title="@string/preference_debug_title"
-        app:preference_type="explainType" />
+        <item
+            android:id="@+id/preferenceData_log"
+            app:preference_accessName="@string/preference_accessName_log"
+            app:preference_description="@string/preference_log_description"
+            app:preference_detailedDescription="@string/preference_log_detailedDescription"
+            app:preference_title="@string/preference_log_title"
+            app:preference_type="eventType" />
 
-    <item
-        android:id="@+id/preferenceData_log"
-        app:preference_accessName="@string/preference_accessName_log"
-        app:preference_description="@string/preference_log_description"
-        app:preference_detailedDescription="@string/preference_log_detailedDescription"
-        app:preference_title="@string/preference_log_title"
-        app:preference_type="eventType" />
+    </group>
 
 </PreferenceSet>
